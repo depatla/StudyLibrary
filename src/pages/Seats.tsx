@@ -15,16 +15,56 @@ const Seats: React.FC = () => {
   const [seatNo, setSeatNo] = useState("");
   const [seatType, setSeatType] = useState("AC");
   const [status, setStatus] = useState("Available");
+  const [filter, setFilter] = useState<string>("All"); // Filter state
+  const [typeFilter, setTypeFilter] = useState<string>("All"); // AC/Non-AC filter
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
-  const [sortedList, setSortedList] = useState(list);
+  const [filteredList, setFilteredList] = useState(list);
 
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
 
   useEffect(() => {
-    handleSort("status", sortOrder);
-  }, [list, sortOrder]);
+    applyFilterAndSort();
+  }, [list, filter, typeFilter, sortOrder]);
+
+  const applyFilterAndSort = () => {
+    let temp = [...list];
+
+    if (filter !== "All") {
+      temp = temp.filter((seat) => seat.status === filter);
+    }
+
+    if (typeFilter !== "All") {
+      temp = temp.filter((seat) => seat.seat_type === typeFilter);
+    }
+
+    if (sortOrder) {
+      temp.sort((a, b) => {
+        if (a.status < b.status) return sortOrder === "asc" ? -1 : 1;
+        if (a.status > b.status) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setFilteredList(temp);
+  };
+
+  const handleFilterChange = (filterValue: string) => {
+    setFilter(filterValue);
+  };
+
+  const handleTypeFilterChange = (filterValue: string) => {
+    setTypeFilter(filterValue);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => {
+      if (prevOrder === "asc") return "desc";
+      if (prevOrder === "desc") return null;
+      return "asc";
+    });
+  };
 
   const handleAddOrEditSeat = async () => {
     if (editingSeatId === null) {
@@ -38,6 +78,7 @@ const Seats: React.FC = () => {
     }
     setIsModalOpen(false);
     resetForm();
+    fetchAll(); // Refresh the list
   };
 
   const handleEdit = (seatId: string) => {
@@ -54,6 +95,7 @@ const Seats: React.FC = () => {
   const handleDelete = async (seatId: string) => {
     if (window.confirm("Are you sure you want to delete this seat?")) {
       await remove(seatId);
+      fetchAll(); // Refresh the list
     }
   };
 
@@ -79,39 +121,30 @@ const Seats: React.FC = () => {
         bulkSeats.forEach(async (seat) => {
           await create(seat);
         });
+        fetchAll(); // Refresh the list
       };
       reader.readAsBinaryString(file);
     }
   };
 
-  const handleSort = (key: string, order: "asc" | "desc" | null) => {
-    if (order === null) {
-      setSortedList(list); // Reset to original list if no sort order
-      return;
-    }
+  const handleDownload = () => {
+    const dataToExport = filteredList.map((seat) => ({
+      "Seat No": seat.seat_no,
+      "Seat Type": seat.seat_type,
+      Status: seat.status,
+    }));
 
-    const sorted = [...list].sort((a, b) => {
-      if (a[key] < b[key]) return order === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return order === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setSortedList(sorted);
-  };
-
-  const toggleSortOrder = () => {
-    setSortOrder((prevOrder) => {
-      if (prevOrder === "asc") return "desc";
-      if (prevOrder === "desc") return null;
-      return "asc";
-    });
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Seats");
+    XLSX.writeFile(workbook, "seats_data.xlsx");
   };
 
   const resetForm = () => {
     setEditingSeatId(null);
     setSeatNo("");
     setSeatType("AC");
-    setStatus("available");
+    setStatus("Available");
   };
 
   return (
@@ -131,15 +164,44 @@ const Seats: React.FC = () => {
           + Add Seat
         </button>
 
-        <label className="bg-green-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto cursor-pointer text-center">
-          Add Bulk
-          <input
-            type="file"
-            accept=".xlsx, .xls"
-            className="hidden"
-            onChange={handleBulkUpload}
-          />
-        </label>
+        <div className="flex gap-4 items-center">
+          <select
+            value={filter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-auto"
+          >
+            <option value="All">All</option>
+            <option value="Available">Available</option>
+            <option value="Occupied">Occupied</option>
+          </select>
+
+          <select
+            value={typeFilter}
+            onChange={(e) => handleTypeFilterChange(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-auto"
+          >
+            <option value="All">All Types</option>
+            <option value="AC">AC</option>
+            <option value="NON_AC">Non-AC</option>
+          </select>
+
+          <label className="bg-green-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto cursor-pointer text-center">
+            Add Bulk Seats
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              className="hidden"
+              onChange={handleBulkUpload}
+            />
+          </label>
+
+          <button
+            onClick={handleDownload}
+            className="bg-yellow-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
+          >
+            Download Data
+          </button>
+        </div>
       </div>
 
       {loading && <p className="text-center">Loading...</p>}
@@ -149,13 +211,12 @@ const Seats: React.FC = () => {
         <table className="w-full border-collapse border border-gray-200 text-sm">
           <thead>
             <tr className="bg-gray-100">
-              {/* <th className="border border-gray-200 p-2 hidden md:table-cell">
-                ID
-              </th> */}
-              <th className="border border-gray-200 p-2">Seat No.</th>
-              <th className="border border-gray-200 p-2">Seat Type</th>
+              <th className="border border-gray-200 p-2 text-left">Seat No.</th>
+              <th className="border border-gray-200 p-2 text-left">
+                Seat Type
+              </th>
               <th
-                className="border border-gray-200 p-2 cursor-pointer flex items-center justify-center gap-2"
+                className="border border-gray-200 p-2 text-left cursor-pointer flex items-center justify-start gap-2"
                 onClick={toggleSortOrder}
               >
                 Status
@@ -163,19 +224,22 @@ const Seats: React.FC = () => {
                 {sortOrder === "desc" && <FaSortDown />}
                 {sortOrder === null && <FaSort />}
               </th>
-              <th className="border border-gray-200 p-2">Actions</th>
+              <th className="border border-gray-200 p-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {sortedList.map((seat) => (
+            {filteredList.map((seat) => (
               <tr key={seat.$id} className="hover:bg-gray-50">
-                {/* <td className="border border-gray-200 p-2 hidden md:table-cell">
-                  {seat.$id}
-                </td> */}
-                <td className="border border-gray-200 p-2">{seat.seat_no}</td>
-                <td className="border border-gray-200 p-2">{seat.seat_type}</td>
-                <td className="border border-gray-200 p-2">{seat.status}</td>
-                <td className="border border-gray-200 p-2 flex gap-2 justify-center">
+                <td className="border border-gray-200 p-2 text-left">
+                  {seat.seat_no}
+                </td>
+                <td className="border border-gray-200 p-2 text-left">
+                  {seat.seat_type}
+                </td>
+                <td className="border border-gray-200 p-2 text-left">
+                  {seat.status}
+                </td>
+                <td className="border border-gray-200 p-2 flex gap-2 justify-start">
                   <button
                     onClick={() => handleEdit(seat.$id)}
                     className="text-yellow-500 hover:text-yellow-600"
