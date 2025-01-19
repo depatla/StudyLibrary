@@ -78,7 +78,12 @@ const Seats: React.FC = () => {
 
   const handleAddOrEditSeat = async () => {
     if (editingSeatId === null) {
-      await create({ seat_no: seatNo, seat_type: seatType, status });
+      await create({
+        seat_no: seatNo,
+        seat_type: seatType,
+        status,
+        hall_code: "PRAJNA",
+      });
     } else {
       await update(editingSeatId, {
         seat_no: seatNo,
@@ -126,6 +131,7 @@ const Seats: React.FC = () => {
           seat_no: row["seat_no"],
           seat_type: row["seat_type"],
           status: row["status"],
+          hall_code: "PRAJNA",
         }));
 
         bulkSeats.forEach(async (seat) => {

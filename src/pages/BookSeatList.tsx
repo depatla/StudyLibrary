@@ -51,6 +51,7 @@ const BookSeatList: React.FC = () => {
         fromDate: item.from_date || "",
         toDate: item.to_date || "",
         amount: item.amount || "0",
+        hall_code: "PRAJNA",
         paymentType: item.payment_type || "Unknown",
       }));
       setBookings(formattedBookings);

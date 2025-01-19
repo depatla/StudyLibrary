@@ -117,7 +117,7 @@ const Students: React.FC = () => {
     phone: string;
     join_date: string;
   }) => {
-    await students.create(newStudent);
+    await students.create({ ...newStudent, hall_code: "PRAJNA" });
     setIsAddStudentOpen(false);
   };
 
@@ -152,6 +152,7 @@ const Students: React.FC = () => {
         comment: bookingDetails.comment || "",
         student_name: bookingDetails.studentName,
         received_by: username,
+        hall_code: "PRAJNA",
       });
 
       // Update student with seat ID
@@ -192,6 +193,7 @@ const Students: React.FC = () => {
             email: student.Email || "",
             phone: student.Phone || "",
             join_date: student.RegisteredOn || "",
+            hall_code: "PRAJNA",
           };
           await students.create(newStudent);
         }

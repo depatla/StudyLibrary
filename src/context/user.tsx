@@ -63,9 +63,7 @@ export const UserProvider: FC<UserProviderProps> = ({ children }) => {
     try {
       const loggedIn = await account.get();
       dispatch(updateUsername(loggedIn.name));
-      console.log(loggedIn);
       setUser(loggedIn);
-      // window.location.replace("/");
     } catch (err) {
       setUser(null);
     }
