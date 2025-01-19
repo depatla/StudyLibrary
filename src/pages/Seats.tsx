@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaEdit, FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { useDatabase } from "./../config/useDatabase";
 import Loader from "../components/common/Loader";
 
-const databaseId = "676f62930015946e6bb5"; // Replace with your Appwrite database ID
-const collectionId = "6771ff5e001204850a2f"; // Replace with your Appwrite collection ID
+const databaseId = process.env.REACT_APP_DATABASE_ID
+  ? process.env.REACT_APP_DATABASE_ID
+  : ""; // Replace with your Appwrite database ID
+const collectionId = process.env.REACT_APP_SEATS_ID
+  ? process.env.REACT_APP_SEATS_ID
+  : ""; // Replace with your Appwrite collection ID
 
 const Seats: React.FC = () => {
   const { list, fetchAll, create, update, remove, loading, error } =
@@ -20,9 +24,14 @@ const Seats: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>("All"); // AC/Non-AC filter
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const [filteredList, setFilteredList] = useState(list);
+  // Use a ref to prevent multiple `fetchAll` calls during Strict Mode in development
+  const isFetched = useRef(false);
 
   useEffect(() => {
-    fetchAll();
+    if (!isFetched.current) {
+      isFetched.current = true; // Prevent further calls
+      fetchAll(); // Call the fetch function
+    }
   }, [fetchAll]);
 
   useEffect(() => {

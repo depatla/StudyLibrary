@@ -8,6 +8,7 @@ export const useDatabase = (databaseId: string, collectionId: string) => {
 
   // Fetch all documents
   const fetchAll = useCallback(async () => {
+    console.log("calling api");
     setLoading(true);
     setError(null);
     try {

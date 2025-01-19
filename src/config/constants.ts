@@ -1,3 +1,3 @@
 export const collectionID = {
-  SEATS: "6771ff5e001204850a2f",
+  SEATS: process.env.REACT_APP_SEATS_ID ? process.env.REACT_APP_SEATS_ID : "",
 };

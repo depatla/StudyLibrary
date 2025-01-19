@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx"; // For Excel file handling
 import { DateTime } from "luxon"; // For date handling
 import { useDatabase } from "./../config/useDatabase"; // Your custom database hook
@@ -9,12 +9,23 @@ import { RootState } from "../store/store";
 import { useSelector } from "react-redux";
 import Loader from "../components/common/Loader";
 
-const databaseId = "676f62930015946e6bb5"; // Replace with your Appwrite database ID
+const databaseId = process.env.REACT_APP_DATABASE_ID
+  ? process.env.REACT_APP_DATABASE_ID
+  : ""; // Replace with your Appwrite database ID
 
 const Students: React.FC = () => {
-  const students = useDatabase(databaseId, "67734d7e002ad7b37a2b");
-  const seats = useDatabase(databaseId, "6771ff5e001204850a2f");
-  const bookings = useDatabase(databaseId, "6775433b0022fae7ea28");
+  const students = useDatabase(
+    databaseId,
+    process.env.REACT_APP_STUDENTS_ID ? process.env.REACT_APP_STUDENTS_ID : ""
+  );
+  const seats = useDatabase(
+    databaseId,
+    process.env.REACT_APP_SEATS_ID ? process.env.REACT_APP_SEATS_ID : ""
+  );
+  const bookings = useDatabase(
+    databaseId,
+    process.env.REACT_APP_BOOKINGS_ID ? process.env.REACT_APP_BOOKINGS_ID : ""
+  );
 
   const username = useSelector((state: RootState) => state.user.username);
 
@@ -36,10 +47,15 @@ const Students: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 
+  const isFetched = useRef(false);
+
   useEffect(() => {
-    students.fetchAll();
-    seats.fetchAll();
-  }, []);
+    if (!isFetched.current) {
+      isFetched.current = true; // Prevent further calls
+      students.fetchAll();
+      seats.fetchAll();
+    }
+  }, [students, seats]);
 
   useEffect(() => {
     const filtered = students.list.filter((student) =>

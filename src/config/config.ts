@@ -3,11 +3,12 @@ import { Client, Account, Databases, Storage } from "appwrite";
 
 // Initialize Appwrite client
 const client = new Client();
-
-// Configure the client
+console.log(process.env);
 client
   .setEndpoint("https://cloud.appwrite.io/v1") // Replace with your Appwrite endpoint
-  .setProject("676f5d6700385a8299f0"); // Replace with your project ID
+  .setProject(
+    process.env.REACT_APP_PROJECT_ID ? process.env.REACT_APP_PROJECT_ID : ""
+  ); // Replace with your project ID
 
 // Export typed Appwrite services
 const account = new Account(client);

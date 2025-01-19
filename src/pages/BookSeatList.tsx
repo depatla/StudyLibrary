@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DateTime } from "luxon"; // Import Luxon for date manipulation
 import { useDatabase } from "./../config/useDatabase"; // Your database hook
 import Loader from "../components/common/Loader";
@@ -14,8 +14,12 @@ interface BookedSeat {
 }
 
 const BookSeatList: React.FC = () => {
-  const databaseId = "676f62930015946e6bb5"; // Replace with your Appwrite database ID
-  const bookingsCollectionId = "6775433b0022fae7ea28"; // Replace with your Bookings collection ID
+  const databaseId = process.env.REACT_APP_DATABASE_ID
+    ? process.env.REACT_APP_DATABASE_ID
+    : ""; // Replace with your Appwrite database ID
+  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID
+    ? process.env.REACT_APP_BOOKINGS_ID
+    : "";
 
   const { list, fetchAll, loading, error } = useDatabase(
     databaseId,
@@ -28,11 +32,14 @@ const BookSeatList: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedReceivedBy, setSelectedReceivedBy] = useState<string>(""); // New filter for receivedBy
 
+  // Use a ref to prevent multiple `fetchAll` calls during Strict Mode in development
+  const isFetched = useRef(false);
+
   useEffect(() => {
-    const fetchBookings = async () => {
-      await fetchAll();
-    };
-    fetchBookings();
+    if (!isFetched.current) {
+      isFetched.current = true; // Prevent further calls
+      fetchAll(); // Call the fetch function
+    }
   }, [fetchAll]);
 
   useEffect(() => {
