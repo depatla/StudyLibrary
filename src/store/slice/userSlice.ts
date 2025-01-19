@@ -6,7 +6,7 @@ interface UserState {
 
 // Initial state for the user slice
 const initialState: UserState = {
-  username: "John Doe",
+  username: "",
 };
 
 const userSlice = createSlice({
@@ -19,4 +19,4 @@ const userSlice = createSlice({
   }, // Add reducers here if needed
 });
 export const { updateUsername } = userSlice.actions;
-export default userSlice.reducer; // Export only the reducer
+export default userSlice.reducer;

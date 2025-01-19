@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { useDatabase } from "./../config/useDatabase";
+import Loader from "../components/common/Loader";
 
 const databaseId = "676f62930015946e6bb5"; // Replace with your Appwrite database ID
 const collectionId = "6771ff5e001204850a2f"; // Replace with your Appwrite collection ID
@@ -147,6 +148,13 @@ const Seats: React.FC = () => {
     setStatus("Available");
   };
 
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4 text-center sm:text-left">

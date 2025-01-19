@@ -4,7 +4,7 @@ import { useDatabase } from "./../../config/useDatabase"; // Adjust the path to 
 
 interface Props {
   title: string;
-  student: { id: string; name: string };
+  student: { id: string; name: string; seat: string };
   onClose: () => void;
   onSubmit: (bookingDetails: {
     studentId: string;
@@ -22,15 +22,15 @@ const collectionId = "6771ff5e001204850a2f"; // Replace with your Appwrite colle
 
 const BookSeat: React.FC<Props> = ({ title, student, onClose, onSubmit }) => {
   const [seatNo, setSeatNo] = useState<{ value: string; label: string } | null>(
-    null
+    student.seat !== "" ? { value: student.seat, label: student.seat } : null
   );
   const [validFrom, setValidFrom] = useState("");
   const [validTo, setValidTo] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("0");
   const [paymentType, setPaymentType] = useState<{
     value: string;
     label: string;
-  } | null>(null);
+  } | null>({ value: "UPI", label: "UPI" });
   const [comments, setComments] = useState(""); // New optional field for comments
   const [errorMessage, setErrorMessage] = useState(""); // State to store error messages
 
@@ -47,7 +47,11 @@ const BookSeat: React.FC<Props> = ({ title, student, onClose, onSubmit }) => {
 
   // Transform fetched seats into select options
   const seatOptions = list
-    .filter((seat) => seat.status.toLowerCase() === "Available".toLowerCase())
+    .filter(
+      (seat) =>
+        seat.status.toLowerCase() === "Available".toLowerCase() ||
+        seat.seat_no === student.seat
+    )
     .map((seat) => ({
       value: seat.seat_no,
       label: `${seat.seat_no} - (${seat.seat_type})`,

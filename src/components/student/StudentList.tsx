@@ -15,7 +15,7 @@ interface Student {
 interface Props {
   students: Student[];
   onDelete: (id: string, seat: string) => void;
-  onBook: (id: string, name: string) => void;
+  onBook: (id: string, name: string, seat: string) => void;
   onchangeSeat: (id: string, name: string, seat: string) => void;
   onSelectStudents: (selected: string[]) => void;
 }
@@ -131,7 +131,9 @@ const StudentList: React.FC<Props> = ({
                   </button>
                 ) : (
                   <button
-                    onClick={() => onBook(student.$id, student.name)}
+                    onClick={() =>
+                      onBook(student.$id, student.name, student.seat_id || "")
+                    }
                     className="bg-green-500 text-white rounded-lg px-3 py-1 text-sm"
                   >
                     Book Seat

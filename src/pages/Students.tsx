@@ -7,6 +7,7 @@ import BookSeat from "../components/student/BookSeat";
 import StudentList from "../components/student/StudentList";
 import { RootState } from "../store/store";
 import { useSelector } from "react-redux";
+import Loader from "../components/common/Loader";
 
 const databaseId = "676f62930015946e6bb5"; // Replace with your Appwrite database ID
 
@@ -30,6 +31,7 @@ const Students: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<null | {
     id: string;
     name: string;
+    seat: string;
   }>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -185,7 +187,14 @@ const Students: React.FC = () => {
 
     reader.readAsArrayBuffer(file);
   };
-
+  // Conditional rendering based on loading states
+  if (students.loading || seats.loading || bookings.loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
   return (
     <div className="p-4">
       {/* Search Input */}
@@ -315,15 +324,15 @@ const Students: React.FC = () => {
           }
           students.remove(id);
         }}
-        onBook={(id, name) => {
+        onBook={(id, name, seat) => {
           setChangeSeat("");
-          setSelectedStudent({ id, name });
+          setSelectedStudent({ id, name, seat });
           setIsBookSeatOpen(true);
         }}
         onchangeSeat={async (id, name, seat) => {
           setChangeSeat(seat);
           setTitle("Change");
-          setSelectedStudent({ id, name });
+          setSelectedStudent({ id, name, seat });
           setIsBookSeatOpen(true);
         }}
         onSelectStudents={(selected) => setSelectedStudents(selected)}

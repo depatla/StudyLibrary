@@ -5,7 +5,7 @@ import {
   FaUserGraduate,
   FaChair,
   FaMoneyBillWave,
-  FaUsers,
+  FaTools, // New icon for Maintenance
 } from "react-icons/fa";
 
 const Sidebar = ({
@@ -20,7 +20,7 @@ const Sidebar = ({
     { name: "Students", path: "/Students", icon: <FaUserGraduate /> },
     { name: "Seats", path: "/Seats", icon: <FaChair /> },
     { name: "Bookings", path: "/bookings", icon: <FaMoneyBillWave /> },
-    { name: "Users", path: "/users", icon: <FaUsers /> },
+    { name: "Maintenance", path: "/maintenance", icon: <FaTools /> }, // Added Maintenance
   ];
 
   const location = useLocation();
@@ -32,8 +32,13 @@ const Sidebar = ({
       } transition-transform duration-300 z-40 md:static md:translate-x-0`}
     >
       {/* Logo for Desktop */}
-      <div className="p-4 bg-[#34495e] text-white text-lg font-bold text-center">
-        Logo
+      <div className="p-4 bg-[#34495e] text-white text-lg font-bold text-center flex items-center justify-center gap-2">
+        <img
+          src="/logo.png" // Path to your logo image
+          alt="Logo"
+          className="h-8 w-8 object-contain"
+        />
+        Prajna
       </div>
 
       <div className="p-4">

@@ -7,6 +7,7 @@ import Dashboard from "./Dashboard";
 import Seats from "./Seats";
 import Students from "./Students";
 import BookSeatList from "./BookSeatList";
+import MaintenanceList from "./Maintainance";
 
 export const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,6 +27,7 @@ export const Home = () => {
               <Route path="/Seats" element={<Seats />} />
               <Route path="/Students" element={<Students />} />
               <Route path="/Bookings" element={<BookSeatList />} />
+              <Route path="/maintenance" element={<MaintenanceList />} />
             </Routes>
           </main>
         </div>

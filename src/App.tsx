@@ -1,14 +1,17 @@
+import { useSelector } from "react-redux";
+import { RootState } from "./store/store"; // Adjust the path based on your project structure
 import { Home } from "./pages/Home";
-import { UserProvider } from "./context/user";
 import { Login } from "./pages/Login";
+import { UserProvider } from "./context/user";
 
 function App() {
-  const isLoginPage = window.location.pathname === "/login";
+  // Access the username from the Redux store
+  const username = useSelector((state: RootState) => state.user.username);
 
   return (
     <div>
       <UserProvider>
-        <main>{isLoginPage ? <Login /> : <Home />}</main>
+        <main>{username ? <Home /> : <Login />}</main>
       </UserProvider>
     </div>
   );
