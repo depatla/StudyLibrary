@@ -10,13 +10,13 @@ import {
 import { account } from "../config/config";
 import { useDispatch } from "react-redux";
 import { updateUsername } from "../store/slice/userSlice";
+import Loader from "../components/common/Loader";
 
-// Define the types for the user object and context value
 interface User {
   $id: string;
   name?: string;
   email?: string;
-  [key: string]: any; // Adjust based on your app's user object structure
+  [key: string]: any;
 }
 
 interface UserContextValue {
@@ -42,16 +42,21 @@ interface UserProviderProps {
 
 export const UserProvider: FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // <-- Loading state
   const dispatch = useDispatch();
+
   async function login(email: string, password: string) {
     const loggedIn = await account.createEmailPasswordSession(email, password);
     setUser(loggedIn);
+    console.log(loggedIn);
+    //dispatch(updateUsername(loggedIn.)); // Sync username to Redux store
     window.location.replace("/");
   }
 
   async function logout() {
     await account.deleteSession("current");
     setUser(null);
+    dispatch(updateUsername("")); // Clear username in Redux store
   }
 
   async function register(email: string, password: string) {
@@ -62,16 +67,28 @@ export const UserProvider: FC<UserProviderProps> = ({ children }) => {
   async function init() {
     try {
       const loggedIn = await account.get();
-      dispatch(updateUsername(loggedIn.name));
       setUser(loggedIn);
+      dispatch(updateUsername(loggedIn.name)); // Sync username to Redux store
     } catch (err) {
       setUser(null);
+      dispatch(updateUsername("")); // Clear username in Redux store
+    } finally {
+      setLoading(false); // Mark initialization as complete
     }
   }
 
   useEffect(() => {
     init();
   }, []);
+
+  // Render a centered loader while the app is initializing
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <UserContext.Provider value={{ current: user, login, logout, register }}>

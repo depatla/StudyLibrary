@@ -1,335 +1,298 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { FaEdit, FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { useDatabase } from "../config/useDatabase";
 import { DateTime } from "luxon";
+import Loader from "../components/common/Loader";
+
+const databaseId = process.env.REACT_APP_DATABASE_ID || "";
+const collectionId = process.env.REACT_APP_MAINTENANCE_ID || "";
 
 interface Maintenance {
-  id: string;
-  type: string; // Rent, Maid, Water, Cleaning, Repair
+  $id: string;
+  type: string;
   amount: number;
-  user: string;
-  date: string; // ISO date string
-  comment: string;
+  comments: string;
+  hall_code: string;
+  $createdAt: string;
 }
 
 const MaintenanceList: React.FC = () => {
-  const [maintenanceData, setMaintenanceData] = useState<Maintenance[]>([
-    {
-      id: "1",
-      type: "Rent",
-      amount: 12000,
-      user: "John Doe",
-      date: "2025-01-05",
-      comment: "Monthly rent for office space",
-    },
-    {
-      id: "2",
-      type: "Maid",
-      amount: 2000,
-      user: "Jane Smith",
-      date: "2024-12-10",
-      comment: "Maid service payment",
-    },
-    {
-      id: "3",
-      type: "Water",
-      amount: 500,
-      user: "Alex Johnson",
-      date: "2024-11-15",
-      comment: "Water bill for November",
-    },
-  ]);
+  const { list, fetchAll, create, update, remove, loading, error } =
+    useDatabase(databaseId, collectionId);
 
-  const [filteredData, setFilteredData] = useState<Maintenance[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMaintenanceId, setEditingMaintenanceId] = useState<
+    string | null
+  >(null);
+  const [maintenanceType, setMaintenanceType] = useState("");
+  const [amount, setAmount] = useState("");
+  const [comments, setComments] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [totalAmount, setTotalAmount] = useState<number>(0); // State for total amount
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-  const [newMaintenance, setNewMaintenance] = useState({
-    type: "",
-    amount: "",
-    comment: "",
-  });
-  const [errors, setErrors] = useState({
-    type: false,
-    amount: false,
-    comment: false,
-  });
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
+  const [filteredList, setFilteredList] = useState<Maintenance[]>(list);
 
-  // Function to generate the last four months, including the current month
-  const generateLastFourMonths = () => {
-    const months = [];
-    for (let i = 0; i < 4; i++) {
-      const date = DateTime.now().minus({ months: i });
-      months.push({
-        value: date.toFormat("yyyy-MM"),
-        label: date.toFormat("MMMM yyyy"),
-      });
+  const isFetched = useRef(false);
+
+  useEffect(() => {
+    if (!isFetched.current) {
+      isFetched.current = true;
+      fetchAll();
     }
-    return months;
-  };
+  }, [fetchAll]);
 
-  const months = generateLastFourMonths();
-
-  // Set default filter to the current month
   useEffect(() => {
     const currentMonth = DateTime.now().toFormat("yyyy-MM");
     setSelectedMonth(currentMonth);
   }, []);
 
-  // Filter data and calculate total amount based on the selected month
   useEffect(() => {
+    applyFilterAndSort();
+  }, [list, selectedMonth, sortOrder]);
+
+  const applyFilterAndSort = () => {
+    console.log(list);
+    let temp = [...list];
+
     if (selectedMonth) {
-      const filtered = maintenanceData.filter(
+      temp = temp.filter(
         (item) =>
-          DateTime.fromISO(item.date).toFormat("yyyy-MM") === selectedMonth
+          DateTime.fromISO(item.$createdAt).toFormat("yyyy-MM") ===
+          selectedMonth
       );
-      setFilteredData(filtered);
-
-      // Calculate total amount
-      const total = filtered.reduce((sum, item) => sum + item.amount, 0);
-      setTotalAmount(total);
     }
-  }, [selectedMonth, maintenanceData]);
 
-  // Validate form fields
+    if (sortOrder) {
+      temp.sort((a, b) => {
+        if (a.amount < b.amount) return sortOrder === "asc" ? -1 : 1;
+        if (a.amount > b.amount) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setFilteredList(temp);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => {
+      if (prevOrder === "asc") return "desc";
+      if (prevOrder === "desc") return null;
+      return "asc";
+    });
+  };
+  const handleAddOrEditMaintenance = async () => {
+    try {
+      if (!validateForm()) return;
+
+      if (editingMaintenanceId === null) {
+        await create({
+          type: maintenanceType,
+          amount: amount,
+          comments,
+          hall_code: "PRAJNA",
+          date: DateTime.now().toISODate(),
+        });
+      } else {
+        await update(editingMaintenanceId, {
+          type: maintenanceType,
+          amount: amount,
+          comments,
+        });
+      }
+
+      fetchAll();
+      setIsModalOpen(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error saving maintenance record:", err);
+      alert("Failed to save maintenance record. Please try again.");
+    }
+  };
+
+  const handleEdit = (maintenanceId: string) => {
+    const record = list.find((item) => item.$id === maintenanceId);
+    if (record) {
+      setEditingMaintenanceId(record.$id);
+      setMaintenanceType(record.type);
+      setAmount(record.amount.toString());
+      setComments(record.comments);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDelete = async (maintenanceId: string) => {
+    if (
+      window.confirm("Are you sure you want to delete this maintenance record?")
+    ) {
+      try {
+        await remove(maintenanceId);
+        fetchAll();
+      } catch (err) {
+        console.error("Error deleting maintenance record:", err);
+        alert("Failed to delete maintenance record. Please try again.");
+      }
+    }
+  };
+
   const validateForm = () => {
-    const newErrors = {
-      type: newMaintenance.type === "",
-      amount:
-        newMaintenance.amount === "" ||
-        isNaN(parseFloat(newMaintenance.amount)),
-      comment: newMaintenance.comment === "",
-    };
-    setErrors(newErrors);
-
-    // Return true if there are no errors
-    return !Object.values(newErrors).some((error) => error === true);
-  };
-
-  // Add new maintenance record
-  const handleAddMaintenance = () => {
-    if (validateForm()) {
-      const newRecord: Maintenance = {
-        id: (maintenanceData.length + 1).toString(),
-        type: newMaintenance.type,
-        amount: parseFloat(newMaintenance.amount),
-        user: "Admin", // Replace with actual user if available
-        date: DateTime.now().toISODate(),
-        comment: newMaintenance.comment,
-      };
-      setMaintenanceData([...maintenanceData, newRecord]);
-      closeModal(); // Close modal
-      setNewMaintenance({ type: "", amount: "", comment: "" }); // Reset form
-      setErrors({ type: false, amount: false, comment: false }); // Reset errors
+    if (!maintenanceType || !amount || isNaN(parseFloat(amount)) || !comments) {
+      alert("All fields are required and amount must be a valid number.");
+      return false;
     }
+    return true;
   };
 
-  // Open Modal
-  const openModal = () => {
-    setIsModalOpen(true);
-    document.body.classList.add("overflow-hidden"); // Prevent body scrolling
+  const resetForm = () => {
+    setEditingMaintenanceId(null);
+    setMaintenanceType("");
+    setAmount("");
+    setComments("");
   };
 
-  // Close Modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    document.body.classList.remove("overflow-hidden"); // Restore body scrolling
-  };
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Maintenance List</h1>
+      <h1 className="text-xl font-bold mb-4 text-center sm:text-left">
+        Maintenance List
+      </h1>
 
-      {/* Filter and Add Button Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-2 md:space-y-0">
-        {/* Month Filter and Total Amount */}
-        <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
-          {/* Month Filter */}
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium">Filter by Month:</label>
-            <select
-              className="border border-gray-300 p-2 rounded-md text-sm"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              {months.map((month) => (
-                <option key={month.value} value={month.value}>
-                  {month.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Total Amount */}
-          <div className="text-sm font-medium mt-2 md:mt-0">
-            Total Amount:{" "}
-            <span className="font-bold text-green-600">
-              ₹{totalAmount.toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        {/* Add Maintenance Button */}
+      {/* Add Maintenance and Filters */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition"
-          onClick={openModal}
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
+          className="bg-blue-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
         >
-          Add Maintenance
+          + Add Maintenance
         </button>
-      </div>
 
-      {/* Scrollable Table Section */}
-      <div className="overflow-x-auto">
-        <div className="max-h-[400px] overflow-y-auto border border-gray-200 rounded-lg">
-          {filteredData.length === 0 ? (
-            <p className="text-gray-600 p-4">
-              No maintenance records available for the selected month.
-            </p>
-          ) : (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 p-2 text-left">
-                    Maintenance Type
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Amount (₹)
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left hidden sm:table-cell">
-                    User
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left hidden sm:table-cell">
-                    Date
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Comment
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 p-2">{item.type}</td>
-                    <td className="border border-gray-300 p-2">
-                      ₹{item.amount.toFixed(2)}
-                    </td>
-                    <td className="border border-gray-300 p-2 hidden sm:table-cell">
-                      {item.user}
-                    </td>
-                    <td className="border border-gray-300 p-2 hidden sm:table-cell">
-                      {DateTime.fromISO(item.date).toFormat("dd MMM yyyy")}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {item.comment}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="flex gap-4 items-center">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-auto"
+          >
+            {Array.from({ length: 4 }, (_, i) => {
+              const month = DateTime.now().minus({ months: i });
+              return (
+                <option key={i} value={month.toFormat("yyyy-MM")}>
+                  {month.toFormat("MMMM yyyy")}
+                </option>
+              );
+            })}
+          </select>
         </div>
       </div>
 
-      {/* Add Maintenance Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">Add Maintenance</h2>
-            <form className="space-y-4">
-              {/* Maintenance Type */}
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Maintenance Type
-                </label>
-                <select
-                  className={`border p-2 rounded-md w-full text-sm ${
-                    errors.type ? "border-red-500" : "border-gray-300"
-                  }`}
-                  value={newMaintenance.type}
-                  onChange={(e) =>
-                    setNewMaintenance({
-                      ...newMaintenance,
-                      type: e.target.value,
-                    })
-                  }
+      {/* Error Handling */}
+      {error && <p className="text-red-500 text-center">Error: {error}</p>}
+
+      {/* Maintenance Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-200 text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-200 p-2 text-left">Type</th>
+              <th className="border border-gray-200 p-2 text-left">
+                Amount
+                <span
+                  onClick={toggleSortOrder}
+                  className="cursor-pointer ml-2 inline-block"
                 >
-                  <option value="">Select Type</option>
-                  <option value="Rent">Rent</option>
-                  <option value="Maid">Maid</option>
-                  <option value="Water">Water</option>
-                  <option value="Cleaning">Cleaning</option>
-                  <option value="Repair">Repair</option>
-                </select>
-                {errors.type && (
-                  <p className="text-red-500 text-sm mt-1">
-                    This field is required.
-                  </p>
-                )}
-              </div>
+                  {sortOrder === "asc" && <FaSortUp />}
+                  {sortOrder === "desc" && <FaSortDown />}
+                  {sortOrder === null && <FaSort />}
+                </span>
+              </th>
+              <th className="border border-gray-200 p-2 text-left">Comments</th>
+              <th className="border border-gray-200 p-2 text-left">Date</th>
+              <th className="border border-gray-200 p-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredList.map((item) => (
+              <tr key={item.$id} className="hover:bg-gray-50">
+                <td className="border border-gray-200 p-2">{item.type}</td>
+                <td className="border border-gray-200 p-2">₹{item.amount}</td>
+                <td className="border border-gray-200 p-2">{item.comments}</td>
+                <td className="border border-gray-200 p-2">
+                  {DateTime.fromISO(item.$createdAt).toFormat("dd MMM yyyy")}
+                </td>
+                <td className="border border-gray-200 p-2 flex gap-2 justify-start">
+                  <button
+                    onClick={() => handleEdit(item.$id)}
+                    className="text-yellow-500 hover:text-yellow-600"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.$id)}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  className={`border p-2 rounded-md w-full text-sm ${
-                    errors.amount ? "border-red-500" : "border-gray-300"
-                  }`}
-                  value={newMaintenance.amount}
-                  onChange={(e) =>
-                    setNewMaintenance({
-                      ...newMaintenance,
-                      amount: e.target.value,
-                    })
-                  }
-                />
-                {errors.amount && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Enter a valid amount.
-                  </p>
-                )}
-              </div>
-
-              {/* Comment */}
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Comment
-                </label>
-                <textarea
-                  className={`border p-2 rounded-md w-full text-sm ${
-                    errors.comment ? "border-red-500" : "border-gray-300"
-                  }`}
-                  rows={3}
-                  value={newMaintenance.comment}
-                  onChange={(e) =>
-                    setNewMaintenance({
-                      ...newMaintenance,
-                      comment: e.target.value,
-                    })
-                  }
-                />
-                {errors.comment && (
-                  <p className="text-red-500 text-sm mt-1">
-                    This field is required.
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-end space-x-2">
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold mb-4 text-center">
+              {editingMaintenanceId ? "Edit Maintenance" : "Add Maintenance"}
+            </h2>
+            <form>
+              <select
+                value={maintenanceType}
+                onChange={(e) => setMaintenanceType(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+              >
+                <option value="">Select Type</option>
+                <option value="Rent">Rent</option>
+                <option value="Maid">Maid</option>
+                <option value="Water">Water</option>
+                <option value="Cleaning">Cleaning</option>
+                <option value="Repair">Repair</option>
+              </select>
+              <input
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+              />
+              <textarea
+                placeholder="Comments"
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+              ></textarea>
+              <div className="flex flex-col sm:flex-row justify-end gap-4">
                 <button
                   type="button"
-                  className="bg-gray-300 text-sm px-4 py-2 rounded-md"
-                  onClick={closeModal}
+                  onClick={() => setIsModalOpen(false)}
+                  className="bg-gray-300 rounded-lg px-4 py-2 w-full sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md"
-                  onClick={handleAddMaintenance}
+                  onClick={handleAddOrEditMaintenance}
+                  className="bg-blue-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
                 >
-                  Add
+                  {editingMaintenanceId ? "Save Changes" : "Add Maintenance"}
                 </button>
               </div>
             </form>
