@@ -17,8 +17,15 @@ interface Maintenance {
 }
 
 const MaintenanceList: React.FC = () => {
-  const { list, fetchAll, create, update, remove, loading, error } =
-    useDatabase(databaseId, collectionId);
+  const {
+    list,
+    fetchAllRecordsByMonth,
+    create,
+    update,
+    remove,
+    loading,
+    error,
+  } = useDatabase(databaseId, collectionId);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMaintenanceId, setEditingMaintenanceId] = useState<
@@ -30,15 +37,13 @@ const MaintenanceList: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>(null);
   const [filteredList, setFilteredList] = useState<Maintenance[]>(list);
-
-  const isFetched = useRef(false);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
 
   useEffect(() => {
-    if (!isFetched.current) {
-      isFetched.current = true;
-      fetchAll();
-    }
-  }, [fetchAll]);
+    const currentMonth = DateTime.now().toFormat("yyyy-MM");
+    setSelectedMonth(currentMonth); // Set the current month as default
+    fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
+  }, [fetchAllRecordsByMonth]);
 
   useEffect(() => {
     const currentMonth = DateTime.now().toFormat("yyyy-MM");
@@ -50,16 +55,7 @@ const MaintenanceList: React.FC = () => {
   }, [list, selectedMonth, sortOrder]);
 
   const applyFilterAndSort = () => {
-    console.log(list);
     let temp = [...list];
-
-    if (selectedMonth) {
-      temp = temp.filter(
-        (item) =>
-          DateTime.fromISO(item.$createdAt).toFormat("yyyy-MM") ===
-          selectedMonth
-      );
-    }
 
     if (sortOrder) {
       temp.sort((a, b) => {
@@ -68,7 +64,12 @@ const MaintenanceList: React.FC = () => {
         return 0;
       });
     }
+    // Calculate total amount
+    const total = temp.reduce((sum, booking) => {
+      return sum + parseFloat(booking.amount || "0");
+    }, 0);
 
+    setTotalAmount(total);
     setFilteredList(temp);
   };
 
@@ -89,7 +90,6 @@ const MaintenanceList: React.FC = () => {
           amount: amount,
           comments,
           hall_code: "PRAJNA",
-          date: DateTime.now().toISODate(),
         });
       } else {
         await update(editingMaintenanceId, {
@@ -99,7 +99,9 @@ const MaintenanceList: React.FC = () => {
         });
       }
 
-      fetchAll();
+      const currentMonth = DateTime.now().toFormat("yyyy-MM");
+      setSelectedMonth(currentMonth); // Set the current month as default
+      fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
       setIsModalOpen(false);
       resetForm();
     } catch (err) {
@@ -125,7 +127,9 @@ const MaintenanceList: React.FC = () => {
     ) {
       try {
         await remove(maintenanceId);
-        fetchAll();
+        const currentMonth = DateTime.now().toFormat("yyyy-MM");
+        setSelectedMonth(currentMonth); // Set the current month as default
+        fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
       } catch (err) {
         console.error("Error deleting maintenance record:", err);
         alert("Failed to delete maintenance record. Please try again.");
@@ -164,20 +168,20 @@ const MaintenanceList: React.FC = () => {
 
       {/* Add Maintenance and Filters */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-        <button
-          onClick={() => {
-            resetForm();
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
-        >
-          + Add Maintenance
-        </button>
+        <span className="text-sm font-medium">
+          Total Amount:{" "}
+          <span className="font-bold text-green-600">
+            ₹{totalAmount.toFixed(2)}
+          </span>
+        </span>
 
         <div className="flex gap-4 items-center">
           <select
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
+            onChange={(e) => {
+              setSelectedMonth(e.target.value);
+              fetchAllRecordsByMonth({ yearMonth: e.target.value });
+            }}
             className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-auto"
           >
             {Array.from({ length: 4 }, (_, i) => {
@@ -189,6 +193,16 @@ const MaintenanceList: React.FC = () => {
               );
             })}
           </select>
+
+          <button
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
+          >
+            + Add Maintenance
+          </button>
         </div>
       </div>
 

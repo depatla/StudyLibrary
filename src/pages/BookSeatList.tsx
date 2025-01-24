@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { DateTime } from "luxon"; // Import Luxon for date manipulation
-import { useDatabase } from "./../config/useDatabase"; // Your database hook
+import React, { useEffect, useState } from "react";
+import { DateTime } from "luxon";
 import Loader from "../components/common/Loader";
-
+import { useDatabase } from "./../config/useDatabase";
 interface BookedSeat {
   id: string;
   studentName: string;
@@ -14,14 +13,10 @@ interface BookedSeat {
 }
 
 const BookSeatList: React.FC = () => {
-  const databaseId = process.env.REACT_APP_DATABASE_ID
-    ? process.env.REACT_APP_DATABASE_ID
-    : ""; // Replace with your Appwrite database ID
-  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID
-    ? process.env.REACT_APP_BOOKINGS_ID
-    : "";
+  const databaseId = process.env.REACT_APP_DATABASE_ID || ""; // Replace with your Appwrite database ID
+  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID || "";
 
-  const { list, fetchAll, loading, error } = useDatabase(
+  const { list, fetchAllRecordsByMonth, loading, error } = useDatabase(
     databaseId,
     bookingsCollectionId
   );
@@ -30,20 +25,16 @@ const BookSeatList: React.FC = () => {
   const [filteredBookings, setFilteredBookings] = useState<BookedSeat[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const [selectedReceivedBy, setSelectedReceivedBy] = useState<string>(""); // New filter for receivedBy
-
-  // Use a ref to prevent multiple `fetchAll` calls during Strict Mode in development
-  const isFetched = useRef(false);
+  const [selectedReceivedBy, setSelectedReceivedBy] = useState<string>("");
 
   useEffect(() => {
-    if (!isFetched.current) {
-      isFetched.current = true; // Prevent further calls
-      fetchAll(); // Call the fetch function
-    }
-  }, [fetchAll]);
+    const currentMonth = DateTime.now().toFormat("yyyy-MM");
+    setSelectedMonth(currentMonth); // Set the current month as default
+    fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
+  }, [fetchAllRecordsByMonth]);
 
   useEffect(() => {
-    if (list) {
+    if (list.length > 0) {
       const formattedBookings: BookedSeat[] = list.map((item) => ({
         id: item.$id,
         studentName: item.student_name || "Unknown",
@@ -51,17 +42,12 @@ const BookSeatList: React.FC = () => {
         fromDate: item.from_date || "",
         toDate: item.to_date || "",
         amount: item.amount || "0",
-        hall_code: "PRAJNA",
         paymentType: item.payment_type || "Unknown",
       }));
       setBookings(formattedBookings);
-
-      const currentMonth = DateTime.now().toFormat("yyyy-MM");
-      setSelectedMonth(currentMonth);
     }
   }, [list]);
 
-  // Apply filters whenever filters or bookings change
   useEffect(() => {
     if (bookings.length > 0) {
       let filtered = bookings;
@@ -107,10 +93,10 @@ const BookSeatList: React.FC = () => {
 
   const months = generateLastFourMonths();
 
-  // Extract unique `receivedBy` values for the filter dropdown
   const uniqueReceivedBy = Array.from(
     new Set(bookings.map((booking) => booking.receivedBy))
   );
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -118,12 +104,12 @@ const BookSeatList: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold mb-4">Booked Seats</h2>
 
       <div className="flex items-center justify-between mb-4">
-        {/* Total amount */}
         <span className="text-sm font-medium">
           Total Amount:{" "}
           <span className="font-bold text-green-600">
@@ -131,15 +117,16 @@ const BookSeatList: React.FC = () => {
           </span>
         </span>
 
-        {/* Filters */}
         <div className="flex items-center space-x-4">
-          {/* Filter by Month */}
           <div className="flex items-center">
             <label className="mr-2 text-sm font-medium">Month:</label>
             <select
               className="border border-gray-300 p-2 rounded-md text-sm"
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              onChange={(e) => {
+                setSelectedMonth(e.target.value);
+                fetchAllRecordsByMonth({ yearMonth: e.target.value }); // Fetch records for the new month
+              }}
             >
               {months.map((month) => (
                 <option key={month.value} value={month.value}>
@@ -149,7 +136,6 @@ const BookSeatList: React.FC = () => {
             </select>
           </div>
 
-          {/* Filter by Received By */}
           <div className="flex items-center">
             <label className="mr-2 text-sm font-medium">Received By:</label>
             <select
@@ -169,9 +155,7 @@ const BookSeatList: React.FC = () => {
       </div>
 
       <div className="overflow-x-auto">
-        {loading ? (
-          <p>Loading bookings...</p>
-        ) : error ? (
+        {error ? (
           <p className="text-red-500">Error loading bookings: {error}</p>
         ) : filteredBookings.length === 0 ? (
           <p>No bookings available for the selected filters.</p>

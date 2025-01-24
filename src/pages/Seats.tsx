@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaEdit, FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { useDatabase } from "./../config/useDatabase";
 import Loader from "../components/common/Loader";
 
@@ -12,7 +14,7 @@ const collectionId = process.env.REACT_APP_SEATS_ID
   : ""; // Replace with your Appwrite collection ID
 
 const Seats: React.FC = () => {
-  const { list, fetchAll, create, update, remove, loading, error } =
+  const { list, fetchAll, create, update, remove, loading, error, total } =
     useDatabase(databaseId, collectionId);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,13 +51,12 @@ const Seats: React.FC = () => {
       temp = temp.filter((seat) => seat.seat_type === typeFilter);
     }
 
-    if (sortOrder) {
-      temp.sort((a, b) => {
-        if (a.status < b.status) return sortOrder === "asc" ? -1 : 1;
-        if (a.status > b.status) return sortOrder === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+    temp.sort((a, b) => {
+      const numA = parseInt(a.seat_no.match(/\d+/)?.[0] || "0", 10); // Extract number from seat_no
+      const numB = parseInt(b.seat_no.match(/\d+/)?.[0] || "0", 10);
+
+      return numA - numB;
+    });
 
     setFilteredList(temp);
   };
@@ -144,16 +145,32 @@ const Seats: React.FC = () => {
   };
 
   const handleDownload = () => {
-    const dataToExport = filteredList.map((seat) => ({
-      "Seat No": seat.seat_no,
-      "Seat Type": seat.seat_type,
-      Status: seat.status,
-    }));
+    const dataToExport = filteredList.map((seat) => [
+      seat.seat_no,
+      seat.seat_type,
+      seat.status,
+    ]);
 
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Seats");
-    XLSX.writeFile(workbook, "seats_data.xlsx");
+    // Initialize jsPDF
+    const doc = new jsPDF();
+
+    // Add a title
+    doc.setFontSize(18);
+    doc.text("Seats Data", 14, 22);
+
+    // Define table columns
+    const tableColumnHeaders = ["Seat No", "Seat Type", "Status"];
+
+    // Add the table to the PDF
+    autoTable(doc, {
+      head: [tableColumnHeaders], // Table headers
+      body: dataToExport, // Table rows
+      startY: 30, // Start after the title
+      theme: "grid", // Table style
+    });
+
+    // Save the PDF
+    doc.save("seats_data.pdf");
   };
 
   const resetForm = () => {
@@ -173,7 +190,7 @@ const Seats: React.FC = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4 text-center sm:text-left">
-        Seats Management
+        Seats Management (Total Seats : {total})
       </h1>
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
@@ -230,7 +247,7 @@ const Seats: React.FC = () => {
       {loading && <p className="text-center">Loading...</p>}
       {error && <p className="text-red-500 text-center">Error: {error}</p>}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-y-auto h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
         <table className="w-full border-collapse border border-gray-200 text-sm">
           <thead>
             <tr className="bg-gray-100">
