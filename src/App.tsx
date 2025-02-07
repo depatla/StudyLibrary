@@ -5,7 +5,6 @@ import { Login } from "./pages/Login";
 import { UserProvider } from "./context/user";
 
 function App() {
-  // Access the username from the Redux store
   const username = useSelector((state: RootState) => state.user.username);
 
   return (
