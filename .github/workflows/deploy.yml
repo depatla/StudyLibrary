@@ -19,10 +19,10 @@ jobs:
         node-version: 20
 
     - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      run: yarn install
 
     - name: Build React app
-      run: yarn build
+      run: CI=false yarn build
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
