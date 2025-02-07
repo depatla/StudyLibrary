@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useDatabase } from "../config/useDatabase";
 import { DateTime } from "luxon";
@@ -42,7 +42,7 @@ const MaintenanceList: React.FC = () => {
   useEffect(() => {
     const currentMonth = DateTime.now().toFormat("yyyy-MM");
     setSelectedMonth(currentMonth); // Set the current month as default
-    fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
+    fetchAllRecordsByMonth({ yearMonth: currentMonth });
   }, [fetchAllRecordsByMonth]);
 
   useEffect(() => {
