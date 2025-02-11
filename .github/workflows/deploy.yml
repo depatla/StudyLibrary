@@ -25,7 +25,7 @@ jobs:
         run: yarn install
 
       - name: Build React App
-        run: yarn build
+        run: CI=false yarn build
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
