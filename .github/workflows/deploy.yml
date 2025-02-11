@@ -19,7 +19,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20  # Use the latest stable version
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn install
@@ -28,14 +28,7 @@ jobs:
         run: yarn build
 
       - name: Deploy to GitHub Pages
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git fetch
-          git switch -c gh-pages || git checkout gh-pages
-          git rm -rf . # Remove old files, but keep .git
-          mv ../build/* .  # Move React build output to root
-          git add .
-          git commit -m "Deploy React App to GitHub Pages"
-          git push --force origin gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages  # Deploy to gh-pages branch
+          folder: build  # Deploy the output from the build folder
