@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/depatla/StudyLibrary/static/css/main.fae3ced7.css",
+    "main.js": "/depatla/StudyLibrary/static/js/main.f41352c6.js",
+    "static/js/239.29e3fdfa.chunk.js": "/depatla/StudyLibrary/static/js/239.29e3fdfa.chunk.js",
+    "static/js/213.1b8d61f7.chunk.js": "/depatla/StudyLibrary/static/js/213.1b8d61f7.chunk.js",
+    "static/js/455.4e79bf7d.chunk.js": "/depatla/StudyLibrary/static/js/455.4e79bf7d.chunk.js",
+    "index.html": "/depatla/StudyLibrary/index.html",
+    "main.fae3ced7.css.map": "/depatla/StudyLibrary/static/css/main.fae3ced7.css.map",
+    "main.f41352c6.js.map": "/depatla/StudyLibrary/static/js/main.f41352c6.js.map",
+    "239.29e3fdfa.chunk.js.map": "/depatla/StudyLibrary/static/js/239.29e3fdfa.chunk.js.map",
+    "213.1b8d61f7.chunk.js.map": "/depatla/StudyLibrary/static/js/213.1b8d61f7.chunk.js.map",
+    "455.4e79bf7d.chunk.js.map": "/depatla/StudyLibrary/static/js/455.4e79bf7d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fae3ced7.css",
+    "static/js/main.f41352c6.js"
+  ]
+}
