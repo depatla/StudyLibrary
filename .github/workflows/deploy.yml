@@ -1,9 +1,9 @@
-name: Deploy Private React App to GitHub Pages
+name: Deploy React App to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # Adjust if your default branch is different
+      - main  # Deploy when pushing to main branch
 
 permissions:
   contents: write
@@ -27,14 +27,15 @@ jobs:
       - name: Build React App
         run: yarn build
 
-      - name: Move Build Files to Root
-        run: |
-          rm -rf *  # Remove all files except .git
-          mv build/* .  # Move React build output to root
-
       - name: Deploy to GitHub Pages
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          yarn deploy
+          git fetch
+          git switch -c gh-pages || git checkout gh-pages
+          git rm -rf . # Remove old files, but keep .git
+          mv ../build/* .  # Move React build output to root
+          git add .
+          git commit -m "Deploy React App to GitHub Pages"
+          git push --force origin gh-pages
