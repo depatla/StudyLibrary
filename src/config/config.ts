@@ -7,7 +7,7 @@ console.log(process.env);
 client
   .setEndpoint("https://cloud.appwrite.io/v1") // Replace with your Appwrite endpoint
   .setProject(
-    process.env.REACT_APP_PROJECT_ID ? process.env.REACT_APP_PROJECT_ID : ""
+    process.env.REACT_APP_PROJECT_ID ? process.env.REACT_APP_PROJECT_ID : "676f5d6700385a8299f0"
   ); // Replace with your project ID
 
 // Export typed Appwrite services
