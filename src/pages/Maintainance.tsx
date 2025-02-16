@@ -4,8 +4,8 @@ import { useDatabase } from "../config/useDatabase";
 import { DateTime } from "luxon";
 import Loader from "../components/common/Loader";
 
-const databaseId = process.env.REACT_APP_DATABASE_ID || "";
-const collectionId = process.env.REACT_APP_MAINTENANCE_ID || "";
+const databaseId = process.env.REACT_APP_DATABASE_ID || "676f62930015946e6bb5";
+const collectionId = process.env.REACT_APP_MAINTENANCE_ID || "678d5f3d001f5c78cbe5";
 
 interface Maintenance {
   $id: string;
