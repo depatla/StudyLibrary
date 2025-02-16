@@ -8,10 +8,10 @@ import Loader from "../components/common/Loader";
 
 const databaseId = process.env.REACT_APP_DATABASE_ID
   ? process.env.REACT_APP_DATABASE_ID
-  : ""; // Replace with your Appwrite database ID
+  : "676f62930015946e6bb5"; // Replace with your Appwrite database ID
 const collectionId = process.env.REACT_APP_SEATS_ID
   ? process.env.REACT_APP_SEATS_ID
-  : ""; // Replace with your Appwrite collection ID
+  : "6771ff5e001204850a2f"; // Replace with your Appwrite collection ID
 
 const Seats: React.FC = () => {
   const { list, fetchAll, create, update, remove, loading, error, total } =
