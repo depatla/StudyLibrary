@@ -11,13 +11,13 @@ interface DashboardData {
 const Dashboard: React.FC = () => {
   const databaseId = process.env.REACT_APP_DATABASE_ID
     ? process.env.REACT_APP_DATABASE_ID
-    : ""; // Replace with your Appwrite database ID
+    : "676f62930015946e6bb5"; // Replace with your Appwrite database ID
   const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID
     ? process.env.REACT_APP_BOOKINGS_ID
-    : ""; // Replace with your Bookings collection ID
+    : "6775433b0022fae7ea28"; // Replace with your Bookings collection ID
   const studentsCollectionId = process.env.REACT_APP_STUDENTS_ID
     ? process.env.REACT_APP_STUDENTS_ID
-    : ""; // Replace with your Students collection ID
+    : "67734d7e002ad7b37a2b"; // Replace with your Students collection ID
   const maintenanceCollectionId = "your-maintenance-collection-id"; // Replace with your Maintenance collection ID
 
   const [data, setData] = useState<DashboardData>({
