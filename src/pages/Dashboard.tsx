@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   const studentsCollectionId = process.env.REACT_APP_STUDENTS_ID
     ? process.env.REACT_APP_STUDENTS_ID
     : "67734d7e002ad7b37a2b"; // Replace with your Students collection ID
-  const maintenanceCollectionId = "your-maintenance-collection-id"; // Replace with your Maintenance collection ID
+  const maintenanceCollectionId = "678d5f3d001f5c78cbe5"; // Replace with your Maintenance collection ID
 
   const [data, setData] = useState<DashboardData>({
     upiPayments: 0,
