@@ -13,8 +13,8 @@ interface BookedSeat {
 }
 
 const BookSeatList: React.FC = () => {
-  const databaseId = process.env.REACT_APP_DATABASE_ID || ""; // Replace with your Appwrite database ID
-  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID || "";
+  const databaseId = process.env.REACT_APP_DATABASE_ID || "676f62930015946e6bb5"; // Replace with your Appwrite database ID
+  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID || "6775433b0022fae7ea28";
 
   const { list, fetchAllRecordsByMonth, loading, error } = useDatabase(
     databaseId,
