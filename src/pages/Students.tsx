@@ -11,20 +11,20 @@ import Loader from "../components/common/Loader";
 
 const databaseId = process.env.REACT_APP_DATABASE_ID
   ? process.env.REACT_APP_DATABASE_ID
-  : ""; // Replace with your Appwrite database ID
+  : "676f62930015946e6bb5"; // Replace with your Appwrite database ID
 
 const Students: React.FC = () => {
   const students = useDatabase(
     databaseId,
-    process.env.REACT_APP_STUDENTS_ID ? process.env.REACT_APP_STUDENTS_ID : ""
+    process.env.REACT_APP_STUDENTS_ID ? process.env.REACT_APP_STUDENTS_ID : "67734d7e002ad7b37a2b"
   );
   const seats = useDatabase(
     databaseId,
-    process.env.REACT_APP_SEATS_ID ? process.env.REACT_APP_SEATS_ID : ""
+    process.env.REACT_APP_SEATS_ID ? process.env.REACT_APP_SEATS_ID : "6771ff5e001204850a2f"
   );
   const bookings = useDatabase(
     databaseId,
-    process.env.REACT_APP_BOOKINGS_ID ? process.env.REACT_APP_BOOKINGS_ID : ""
+    process.env.REACT_APP_BOOKINGS_ID ? process.env.REACT_APP_BOOKINGS_ID : "6775433b0022fae7ea28"
   );
 
   const username = useSelector((state: RootState) => state.user.username);
