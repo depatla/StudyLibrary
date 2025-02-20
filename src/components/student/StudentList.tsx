@@ -61,7 +61,7 @@ const StudentList: React.FC<Props> = ({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-y-auto h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
       <table className="w-full border-collapse border border-gray-200 text-sm">
         <thead>
           <tr className="bg-gray-100">
