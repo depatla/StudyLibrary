@@ -95,6 +95,7 @@ const Students: React.FC = () => {
 
   const handleSendWhatsApp = () => {
     setIsBulkWhatsAppOpen(true);
+     setIsDropdownOpen(false);
   };
 
   const handleSendMessage = () => {
@@ -307,15 +308,20 @@ const Students: React.FC = () => {
                 className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
                 role="menu"
               >
-                <div className="py-1" role="none">
+                <button
+  onClick={() => {
+    setIsAddStudentOpen(true);
+    setIsDropdownOpen(false);
+  }}
+  className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
+>
+  Add Student
+</button>
                   <button
-                    onClick={() => setIsAddStudentOpen(true)}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    Add Student
-                  </button>
-                  <button
-                    onClick={() => setIsBulkUploadOpen(true)}
+                    onClick={() => {
+                      setIsBulkUploadOpen(true); 
+                      setIsDropdownOpen(false);
+                    }}
                     className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
                   >
                     Bulk Upload
