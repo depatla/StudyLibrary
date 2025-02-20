@@ -189,10 +189,10 @@ const Students: React.FC = () => {
 
         for (const student of studentsData) {
           const newStudent = {
-            name: student.Name || "",
-            email: student.Email || "",
-            phone: student.Phone || "",
-            join_date: student.RegisteredOn || "",
+            name: student.Name.toString() || "",
+            email: "",
+            phone: student.Phone.toString() || "",
+            join_date: student.RegisteredOn.toString() || "",
             hall_code: "PRAJNA",
           };
           await students.create(newStudent);
