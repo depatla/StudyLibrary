@@ -304,37 +304,39 @@ const Students: React.FC = () => {
             </button>
 
             {isDropdownOpen && (
-              <div
-                className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-                role="menu"
-              >
-                <button
-  onClick={() => {
-    setIsAddStudentOpen(true);
-    setIsDropdownOpen(false);
-  }}
-  className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
->
-  Add Student
-</button>
-                  <button
-                    onClick={() => {
-                      setIsBulkUploadOpen(true); 
-                      setIsDropdownOpen(false);
-                    }}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    Bulk Upload
-                  </button>
-                  <button
-                    onClick={handleSendWhatsApp}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    Send WhatsApp
-                  </button>
-                </div>
-              </div>
-            )}
+  <div
+    className="absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-left"
+    role="menu"
+  >
+    <button
+      onClick={() => {
+        setIsAddStudentOpen(true);
+        setIsDropdownOpen(false);
+      }}
+      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+    >
+      Add Student
+    </button>
+    
+    <button
+      onClick={() => {
+        setIsBulkUploadOpen(true);
+        setIsDropdownOpen(false);
+      }}
+      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+    >
+      Bulk Upload
+    </button>
+    
+    <button
+      onClick={handleSendWhatsApp}
+      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+    >
+      Send WhatsApp
+    </button>
+  </div>
+)}
+
           </div>
         </div>
       </div>
