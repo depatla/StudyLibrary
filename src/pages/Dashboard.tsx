@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDatabase } from "./../config/useDatabase"; // Replace with your database hook
+import { DateTime } from "luxon";
 
 interface DashboardData {
   upiPayments: number;
@@ -27,27 +28,26 @@ const Dashboard: React.FC = () => {
     studyHallMaintenance: 0,
   });
 
-  const { list: bookings, fetchAll: fetchBookings } = useDatabase(
+  const { list: bookings, fetchAllRecordsByMonth: fetchBookings } = useDatabase(
     databaseId,
     bookingsCollectionId
   );
-  const { list: students, fetchAll: fetchStudents } = useDatabase(
+  const { list: students, fetchAllRecordsByMonth: fetchStudents } = useDatabase(
     databaseId,
     studentsCollectionId
   );
-  const { list: maintenance, fetchAll: fetchMaintenance } = useDatabase(
-    databaseId,
-    maintenanceCollectionId
-  );
+  const { list: maintenance, fetchAllRecordsByMonth: fetchMaintenance } =
+    useDatabase(databaseId, maintenanceCollectionId);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      const currentMonth = DateTime.now().toFormat("yyyy-MM");
       // Fetch bookings
-      await fetchBookings();
+      await fetchBookings({ yearMonth: currentMonth });
       // Fetch students
-      await fetchStudents();
+      await fetchStudents({ yearMonth: currentMonth });
       // Fetch maintenance data
-      await fetchMaintenance();
+      await fetchMaintenance({ yearMonth: currentMonth });
     };
 
     fetchDashboardData();

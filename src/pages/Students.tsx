@@ -8,6 +8,7 @@ import StudentList from "../components/student/StudentList";
 import { RootState } from "../store/store";
 import { useSelector } from "react-redux";
 import Loader from "../components/common/Loader";
+import DialogBox from "../components/common/DialogBox";
 
 const databaseId = process.env.REACT_APP_DATABASE_ID
   ? process.env.REACT_APP_DATABASE_ID
@@ -16,15 +17,21 @@ const databaseId = process.env.REACT_APP_DATABASE_ID
 const Students: React.FC = () => {
   const students = useDatabase(
     databaseId,
-    process.env.REACT_APP_STUDENTS_ID ? process.env.REACT_APP_STUDENTS_ID : "67734d7e002ad7b37a2b"
+    process.env.REACT_APP_STUDENTS_ID
+      ? process.env.REACT_APP_STUDENTS_ID
+      : "67734d7e002ad7b37a2b"
   );
   const seats = useDatabase(
     databaseId,
-    process.env.REACT_APP_SEATS_ID ? process.env.REACT_APP_SEATS_ID : "6771ff5e001204850a2f"
+    process.env.REACT_APP_SEATS_ID
+      ? process.env.REACT_APP_SEATS_ID
+      : "6771ff5e001204850a2f"
   );
   const bookings = useDatabase(
     databaseId,
-    process.env.REACT_APP_BOOKINGS_ID ? process.env.REACT_APP_BOOKINGS_ID : "6775433b0022fae7ea28"
+    process.env.REACT_APP_BOOKINGS_ID
+      ? process.env.REACT_APP_BOOKINGS_ID
+      : "6775433b0022fae7ea28"
   );
 
   const username = useSelector((state: RootState) => state.user.username);
@@ -46,6 +53,9 @@ const Students: React.FC = () => {
   }>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [dialog, setDialog] = useState<{
+    message: string | null;
+  }>({ message: null });
 
   const isFetched = useRef(false);
 
@@ -95,7 +105,7 @@ const Students: React.FC = () => {
 
   const handleSendWhatsApp = () => {
     setIsBulkWhatsAppOpen(true);
-     setIsDropdownOpen(false);
+    setIsDropdownOpen(false);
   };
 
   const handleSendMessage = () => {
@@ -107,8 +117,7 @@ const Students: React.FC = () => {
       message,
       numbers: selectedNumbers,
     });
-
-    alert(`Message sent to: \n${selectedNumbers.join(", ")}`);
+    setDialog({ message: `Message sent to: \n${selectedNumbers.join(", ")}` });
     setIsBulkWhatsAppOpen(false);
   };
 
@@ -118,8 +127,14 @@ const Students: React.FC = () => {
     phone: string;
     join_date: string;
   }) => {
-    await students.create({ ...newStudent, hall_code: "PRAJNA" });
-    setIsAddStudentOpen(false);
+    try {
+      await students.create({ ...newStudent, hall_code: "PRAJNA" });
+      setIsAddStudentOpen(false);
+      setDialog({ message: "Student created sucessfully" });
+    } catch (error) {
+      console.error("Error during booking:", error);
+      alert("An error occurred while creating the student. Please try again.");
+    }
   };
 
   const updateSeat = async (status: string, seatNo: string) => {
@@ -170,7 +185,7 @@ const Students: React.FC = () => {
       await updateSeat("Occupied", bookingDetails.seatNo);
 
       setIsBookSeatOpen(false);
-      alert("Booking successfully created!");
+      setDialog({ message: "Booking successfully created!" });
     } catch (error) {
       console.error("Error during booking:", error);
       alert("An error occurred while creating the booking. Please try again.");
@@ -200,7 +215,7 @@ const Students: React.FC = () => {
         }
 
         setIsBulkUploadOpen(false);
-        alert("Bulk upload successful!");
+        setDialog({ message: "Bulk upload successful!" });
       }
     };
 
@@ -304,39 +319,38 @@ const Students: React.FC = () => {
             </button>
 
             {isDropdownOpen && (
-  <div
-    className="absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-left"
-    role="menu"
-  >
-    <button
-      onClick={() => {
-        setIsAddStudentOpen(true);
-        setIsDropdownOpen(false);
-      }}
-      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-    >
-      Add Student
-    </button>
-    
-    <button
-      onClick={() => {
-        setIsBulkUploadOpen(true);
-        setIsDropdownOpen(false);
-      }}
-      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-    >
-      Bulk Upload
-    </button>
-    
-    <button
-      onClick={handleSendWhatsApp}
-      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-    >
-      Send WhatsApp
-    </button>
-  </div>
-)}
+              <div
+                className="absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-left"
+                role="menu"
+              >
+                <button
+                  onClick={() => {
+                    setIsAddStudentOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                >
+                  Add Student
+                </button>
 
+                <button
+                  onClick={() => {
+                    setIsBulkUploadOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                >
+                  Bulk Upload
+                </button>
+
+                <button
+                  onClick={handleSendWhatsApp}
+                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                >
+                  Send WhatsApp
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -434,6 +448,17 @@ const Students: React.FC = () => {
           student={selectedStudent}
           onClose={() => setIsBookSeatOpen(false)}
           onSubmit={handleBookSeat}
+        />
+      )}
+      {/* Success Dialog */}
+      {dialog.message !== null && (
+        <DialogBox
+          isOpen={true}
+          title="Success"
+          message={dialog.message}
+          onClose={() => setDialog({ message: null })}
+          confirmText="OK"
+          type="success"
         />
       )}
     </div>

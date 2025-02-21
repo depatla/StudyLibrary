@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaTrash } from "react-icons/fa";
+import DialogBox from "../common/DialogBox";
 
 interface Student {
   $id: string;
@@ -28,6 +29,12 @@ const StudentList: React.FC<Props> = ({
   onSelectStudents,
 }) => {
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
+  const [dialog, setDialog] = useState<{
+    id?: string;
+    seatId?: string;
+    name?: string;
+    type: "confirm" | "success";
+  } | null>(null);
 
   const isCurrentDateInRange = (fromDate?: string, toDate?: string) => {
     if (!fromDate || !toDate) return false;
@@ -51,6 +58,17 @@ const StudentList: React.FC<Props> = ({
 
     setSelectedStudents(updatedSelected);
     onSelectStudents(updatedSelected);
+  };
+
+  const handleDeleteClick = (id: string, name: string, seatId: string) => {
+    setDialog({ id, name, seatId, type: "confirm" });
+  };
+
+  const confirmDelete = () => {
+    if (dialog?.id) {
+      onDelete(dialog.id, dialog.seatId ? dialog.seatId : "");
+      setDialog({ type: "success" });
+    }
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -140,7 +158,13 @@ const StudentList: React.FC<Props> = ({
                   </button>
                 )}
                 <FaTrash
-                  onClick={() => onDelete(student.$id, student.seat_id || "")}
+                  onClick={() =>
+                    handleDeleteClick(
+                      student.$id,
+                      student.name,
+                      student.seat_id || ""
+                    )
+                  }
                   className="text-red-500 cursor-pointer text-lg"
                   title="Delete"
                 />
@@ -149,6 +173,19 @@ const StudentList: React.FC<Props> = ({
           ))}
         </tbody>
       </table>
+      {/* Confirmation Dialog */}
+      {dialog?.type === "confirm" && (
+        <DialogBox
+          isOpen={true}
+          title="Confirm Delete"
+          message={`Are you sure you want to delete ${dialog.name}?`}
+          onClose={() => setDialog(null)}
+          onConfirm={confirmDelete}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="confirm"
+        />
+      )}
     </div>
   );
 };

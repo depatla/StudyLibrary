@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import Loader from "../components/common/Loader";
-import { useDatabase } from "./../config/useDatabase";
+import { useDatabase } from "../config/useDatabase";
+
 interface BookedSeat {
   id: string;
   studentName: string;
@@ -10,11 +11,14 @@ interface BookedSeat {
   toDate: string;
   amount: string;
   paymentType: string;
+  comment?: string;
 }
 
 const BookSeatList: React.FC = () => {
-  const databaseId = process.env.REACT_APP_DATABASE_ID || "676f62930015946e6bb5"; // Replace with your Appwrite database ID
-  const bookingsCollectionId = process.env.REACT_APP_BOOKINGS_ID || "6775433b0022fae7ea28";
+  const databaseId =
+    process.env.REACT_APP_DATABASE_ID || "676f62930015946e6bb5";
+  const bookingsCollectionId =
+    process.env.REACT_APP_BOOKINGS_ID || "6775433b0022fae7ea28";
 
   const { list, fetchAllRecordsByMonth, loading, error } = useDatabase(
     databaseId,
@@ -29,13 +33,13 @@ const BookSeatList: React.FC = () => {
 
   useEffect(() => {
     const currentMonth = DateTime.now().toFormat("yyyy-MM");
-    setSelectedMonth(currentMonth); // Set the current month as default
-    fetchAllRecordsByMonth({ yearMonth: currentMonth }); // Fetch records for the current month
+    setSelectedMonth(currentMonth);
+    fetchAllRecordsByMonth({ yearMonth: currentMonth });
   }, [fetchAllRecordsByMonth]);
 
   useEffect(() => {
     if (list.length > 0) {
-      const formattedBookings: BookedSeat[] = list.map((item) => ({
+      const formattedBookings = list.map((item) => ({
         id: item.$id,
         studentName: item.student_name || "Unknown",
         receivedBy: item.received_by || "Admin",
@@ -43,56 +47,49 @@ const BookSeatList: React.FC = () => {
         toDate: item.to_date || "",
         amount: item.amount || "0",
         paymentType: item.payment_type || "Unknown",
+        comment: item.comment || "",
       }));
       setBookings(formattedBookings);
     }
   }, [list]);
 
   useEffect(() => {
-    if (bookings.length > 0) {
-      let filtered = bookings;
+    let filtered = bookings;
 
-      // Filter by month
-      if (selectedMonth) {
-        filtered = filtered.filter(
-          (booking) =>
-            DateTime.fromISO(booking.fromDate).toFormat("yyyy-MM") ===
-            selectedMonth
-        );
-      }
-
-      // Filter by receivedBy
-      if (selectedReceivedBy) {
-        filtered = filtered.filter(
-          (booking) => booking.receivedBy === selectedReceivedBy
-        );
-      }
-
-      setFilteredBookings(filtered);
-
-      // Calculate total amount
-      const total = filtered.reduce((sum, booking) => {
-        return sum + parseFloat(booking.amount || "0");
-      }, 0);
-
-      setTotalAmount(total);
+    if (selectedMonth) {
+      filtered = filtered.filter(
+        (booking) =>
+          DateTime.fromISO(booking.fromDate).toFormat("yyyy-MM") ===
+          selectedMonth
+      );
     }
+
+    if (selectedReceivedBy) {
+      filtered = filtered.filter(
+        (booking) => booking.receivedBy === selectedReceivedBy
+      );
+    }
+
+    setFilteredBookings(filtered);
+
+    const total = filtered.reduce(
+      (sum, booking) => sum + parseFloat(booking.amount || "0"),
+      0
+    );
+    setTotalAmount(total);
   }, [selectedMonth, selectedReceivedBy, bookings]);
 
   const generateLastFourMonths = () => {
-    const months = [];
-    for (let i = 0; i < 4; i++) {
+    return Array.from({ length: 4 }, (_, i) => {
       const date = DateTime.now().minus({ months: i });
-      months.push({
+      return {
         value: date.toFormat("yyyy-MM"),
         label: date.toFormat("MMMM yyyy"),
-      });
-    }
-    return months;
+      };
+    });
   };
 
   const months = generateLastFourMonths();
-
   const uniqueReceivedBy = Array.from(
     new Set(bookings.map((booking) => booking.receivedBy))
   );
@@ -109,7 +106,8 @@ const BookSeatList: React.FC = () => {
     <div className="p-4">
       <h2 className="text-lg font-bold mb-4">Booked Seats</h2>
 
-      <div className="flex items-center justify-between mb-4">
+      {/* Filters & Total Amount (Responsive) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <span className="text-sm font-medium">
           Total Amount:{" "}
           <span className="font-bold text-green-600">
@@ -117,7 +115,7 @@ const BookSeatList: React.FC = () => {
           </span>
         </span>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <div className="flex items-center">
             <label className="mr-2 text-sm font-medium">Month:</label>
             <select
@@ -125,7 +123,7 @@ const BookSeatList: React.FC = () => {
               value={selectedMonth}
               onChange={(e) => {
                 setSelectedMonth(e.target.value);
-                fetchAllRecordsByMonth({ yearMonth: e.target.value }); // Fetch records for the new month
+                fetchAllRecordsByMonth({ yearMonth: e.target.value });
               }}
             >
               {months.map((month) => (
@@ -154,60 +152,96 @@ const BookSeatList: React.FC = () => {
         </div>
       </div>
 
+      {/* Table for larger screens, Grid for mobile */}
       <div className="overflow-x-auto">
         {error ? (
           <p className="text-red-500">Error loading bookings: {error}</p>
         ) : filteredBookings.length === 0 ? (
           <p>No bookings available for the selected filters.</p>
         ) : (
-          <table className="w-full border-collapse border border-gray-200">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-200 p-2 text-left">
-                  Student Name
-                </th>
-                <th className="border border-gray-200 p-2 text-left hidden sm:table-cell">
-                  Received By
-                </th>
-                <th className="border border-gray-200 p-2 text-left">
-                  From Date
-                </th>
-                <th className="border border-gray-200 p-2 text-left">
-                  To Date
-                </th>
-                <th className="border border-gray-200 p-2 text-left hidden lg:table-cell">
-                  Amount
-                </th>
-                <th className="border border-gray-200 p-2 text-left hidden sm:table-cell">
-                  Payment Type
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+          <div className="w-full">
+            {/* Mobile View (Grid Layout) */}
+            <div className="grid grid-cols-1 gap-4 sm:hidden">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50">
-                  <td className="border border-gray-200 p-2">
-                    {booking.studentName}
-                  </td>
-                  <td className="border border-gray-200 p-2 hidden sm:table-cell">
-                    {booking.receivedBy}
-                  </td>
-                  <td className="border border-gray-200 p-2">
-                    {booking.fromDate}
-                  </td>
-                  <td className="border border-gray-200 p-2">
-                    {booking.toDate}
-                  </td>
-                  <td className="border border-gray-200 p-2 hidden lg:table-cell">
+                <div
+                  key={booking.id}
+                  className="border p-4 rounded-lg shadow-md bg-white"
+                >
+                  <p className="font-bold">{booking.studentName}</p>
+                  <p className="text-sm text-gray-600">
+                    Received By: {booking.receivedBy}
+                  </p>
+                  <p className="text-sm">From: {booking.fromDate}</p>
+                  <p className="text-sm">To: {booking.toDate}</p>
+                  <p className="text-sm text-green-600 font-bold">
                     ₹{booking.amount}
-                  </td>
-                  <td className="border border-gray-200 p-2 hidden sm:table-cell">
-                    {booking.paymentType}
-                  </td>
-                </tr>
+                  </p>
+                  <p className="text-sm">Payment: {booking.paymentType}</p>
+                  {booking.comment && (
+                    <p className="text-sm italic">"{booking.comment}"</p>
+                  )}
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop View (Table Layout) */}
+            <div className="overflow-y-auto h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+              <table className="hidden sm:table w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-200 p-2 text-left">
+                      Student Name
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      Received By
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      From Date
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      To Date
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      Amount
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      Payment Type
+                    </th>
+                    <th className="border border-gray-200 p-2 text-left">
+                      Comments
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBookings.map((booking) => (
+                    <tr key={booking.id} className="hover:bg-gray-50">
+                      <td className="border border-gray-200 p-2">
+                        {booking.studentName}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        {booking.receivedBy}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        {booking.fromDate}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        {booking.toDate}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        ₹{booking.amount}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        {booking.paymentType}
+                      </td>
+                      <td className="border border-gray-200 p-2">
+                        {booking.comment}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
     </div>
