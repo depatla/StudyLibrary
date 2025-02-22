@@ -81,7 +81,7 @@ const Students: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleFilter = (filterType: "due" | "paid") => {
+  const handleFilter = (filterType: "due" | "paid" | "all") => {
     const now = DateTime.now();
 
     if (filterType === "due") {
@@ -97,6 +97,8 @@ const Students: React.FC = () => {
         return fromDate <= now && now <= toDate;
       });
       setFilteredStudents(filtered);
+    } else {
+      setFilteredStudents(students.list);
     }
 
     setIsFilterDropdownOpen(false);
@@ -239,9 +241,8 @@ const Students: React.FC = () => {
           value={searchTerm}
           onChange={handleSearch}
           className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none w-full sm:w-auto"
-        />
-
-        {/* Dropdowns Row */}
+        />{" "}
+        (Total Students {filteredStudents.length}){/* Dropdowns Row */}
         <div className="flex gap-4 flex-wrap justify-start sm:justify-end">
           {/* Filter Dropdown */}
           <div className="relative inline-block text-left">
@@ -275,6 +276,12 @@ const Students: React.FC = () => {
                 role="menu"
               >
                 <div className="py-1" role="none">
+                  <button
+                    onClick={() => handleFilter("all")}
+                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
+                  >
+                    All
+                  </button>
                   <button
                     onClick={() => handleFilter("due")}
                     className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"

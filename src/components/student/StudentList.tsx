@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import DialogBox from "../common/DialogBox";
+import { DateTime } from "luxon";
 
 interface Student {
   $id: string;
@@ -50,6 +51,21 @@ const StudentList: React.FC<Props> = ({
     const to = new Date(toDate);
     return to < today;
   };
+
+  function getDaysDifference(dateStr: string | undefined): number {
+    if (!dateStr) return 0;
+    // Parse the input date from an ISO string
+    const inputDate = DateTime.fromISO(dateStr);
+
+    // Get the current date and time
+    const currentDate = DateTime.now();
+
+    // Calculate the difference in days
+    const diff = inputDate.diff(currentDate, "days").days;
+
+    // Optionally, round the difference if an integer value is preferred
+    return Math.floor(diff);
+  }
 
   const handleCheckboxChange = (id: string) => {
     const updatedSelected = selectedStudents.includes(id)
@@ -103,7 +119,12 @@ const StudentList: React.FC<Props> = ({
             <th className="border border-gray-200 p-2 text-left hidden md:table-cell">
               To
             </th>
-            <th className="border border-gray-200 p-2 text-left">Actions</th>
+            <th className="border border-gray-200 p-2 text-left hidden md:table-cell">
+              Due Days
+            </th>
+            <th className="border border-gray-200 p-2 justify-center items-center">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -132,6 +153,9 @@ const StudentList: React.FC<Props> = ({
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {student.to_date &&
                   new Date(student.to_date).toLocaleDateString()}
+              </td>
+              <td className="border border-gray-200 p-2 hidden md:table-cell">
+                {getDaysDifference(student.to_date)}
               </td>
               <td className="border border-gray-200 p-2 flex flex-wrap gap-2 justify-center items-center">
                 {isCurrentDateInRange(student.from_date, student.to_date) ? (
