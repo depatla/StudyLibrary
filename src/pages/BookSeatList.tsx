@@ -161,7 +161,7 @@ const BookSeatList: React.FC = () => {
         ) : (
           <div className="w-full">
             {/* Mobile View (Grid Layout) */}
-            <div className="grid grid-cols-1 gap-4 sm:hidden">
+            <div className="grid grid-cols-1 gap-4 sm:hidden overflow-y-auto h-[calc(100vh-300px)] scrollbar-thin">
               {filteredBookings.map((booking) => (
                 <div
                   key={booking.id}
