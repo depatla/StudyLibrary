@@ -279,6 +279,9 @@ const MaintenanceList: React.FC = () => {
                 <option value="Water">Water</option>
                 <option value="Cleaning">Cleaning</option>
                 <option value="Repair">Repair</option>
+                <option value="Elecricity">Elecricity</option>
+                <option value="Wifi">Wifi</option>
+                <option value="Others">Others</option>
               </select>
               <input
                 type="number"
