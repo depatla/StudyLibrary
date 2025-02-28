@@ -222,10 +222,10 @@ const BookSeatList: React.FC = () => {
                         {booking.receivedBy}
                       </td>
                       <td className="border border-gray-200 p-2">
-                        {DateTime.fromISO(fromDate).toFormat("dd-MMM-yyyy")}
+                        {DateTime.fromISO(booking.fromDate).toFormat("dd-MMM-yyyy")}
                       </td>
                       <td className="border border-gray-200 p-2">
-                         {DateTime.fromISO(toDate).toFormat("dd-MMM-yyyy")}
+                         {DateTime.fromISO(booking.toDate).toFormat("dd-MMM-yyyy")}
                       </td>
                       <td className="border border-gray-200 p-2">
                         ₹{booking.amount}
