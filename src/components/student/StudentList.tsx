@@ -148,11 +148,11 @@ const StudentList: React.FC<Props> = ({
               <td className="border border-gray-200 p-2">{student?.seat_id}</td>
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {student.from_date &&
-                  new Date(student.from_date).toLocaleDateString()}
+                  DateTime.fromISO(student.from_date).toFormat("dd-MMM-yyyy")}
               </td>
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {student.to_date &&
-                  new Date(student.to_date).toLocaleDateString()}
+                  DateTime.fromISO(student.to_date).toFormat("dd-MMM-yyyy")}
               </td>
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {getDaysDifference(student.to_date)}
