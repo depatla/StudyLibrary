@@ -56,13 +56,13 @@ const BookSeatList: React.FC = () => {
   useEffect(() => {
     let filtered = bookings;
 
-    if (selectedMonth) {
-      filtered = filtered.filter(
-        (booking) =>
-          DateTime.fromISO(booking.fromDate).toFormat("yyyy-MM") ===
-          selectedMonth
-      );
-    }
+    // if (selectedMonth) {
+    //   filtered = filtered.filter(
+    //     (booking) =>
+    //       DateTime.fromISO(booking.fromDate).toFormat("yyyy-MM") ===
+    //       selectedMonth
+    //   );
+    // }
 
     if (selectedReceivedBy) {
       filtered = filtered.filter(
