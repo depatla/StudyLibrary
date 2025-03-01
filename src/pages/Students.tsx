@@ -10,6 +10,16 @@ import { useSelector } from "react-redux";
 import Loader from "../components/common/Loader";
 import DialogBox from "../components/common/DialogBox";
 
+type User = {
+  name: string;
+  phone: string;
+  [key: string]: any;
+};
+
+const isUserFound = (users: User[], name: string, phone: string): boolean => {
+  return users.some((user) => user.name === name && user.phone === phone);
+};
+
 const databaseId = process.env.REACT_APP_DATABASE_ID
   ? process.env.REACT_APP_DATABASE_ID
   : "676f62930015946e6bb5"; // Replace with your Appwrite database ID
@@ -55,7 +65,8 @@ const Students: React.FC = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [dialog, setDialog] = useState<{
     message: string | null;
-  }>({ message: null });
+    type?: string;
+  }>({ message: null, type: "Success" });
 
   const isFetched = useRef(false);
 
@@ -130,6 +141,10 @@ const Students: React.FC = () => {
     join_date: string;
   }) => {
     try {
+      if (isUserFound(students.list, newStudent.name, newStudent.phone)) {
+        setDialog({ type: "Warning", message: "Student already exists" });
+        return false;
+      }
       await students.create({ ...newStudent, hall_code: "PRAJNA" });
       setIsAddStudentOpen(false);
       setDialog({ message: "Student created sucessfully" });
@@ -158,7 +173,7 @@ const Students: React.FC = () => {
     validTo: string;
     amount: string;
     paymentType: string;
-    comment?: string;
+    comments?: string;
   }) => {
     try {
       await bookings.create({
@@ -167,7 +182,7 @@ const Students: React.FC = () => {
         to_date: bookingDetails.validTo,
         payment_type: bookingDetails.paymentType,
         amount: bookingDetails.amount,
-        comment: bookingDetails.comment || "",
+        comment: bookingDetails.comments || "",
         student_name: bookingDetails.studentName,
         received_by: username,
         hall_code: "PRAJNA",
@@ -373,6 +388,7 @@ const Students: React.FC = () => {
         }}
         onBook={(id, name, seat) => {
           setChangeSeat("");
+          setTitle("Book");
           setSelectedStudent({ id, name, seat });
           setIsBookSeatOpen(true);
         }}
@@ -461,9 +477,9 @@ const Students: React.FC = () => {
       {dialog.message !== null && (
         <DialogBox
           isOpen={true}
-          title="Success"
+          title={dialog?.type || "Success"}
           message={dialog.message}
-          onClose={() => setDialog({ message: null })}
+          onClose={() => setDialog({ message: null, type: "Success" })}
           confirmText="OK"
           type="success"
         />

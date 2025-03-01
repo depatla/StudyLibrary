@@ -17,8 +17,14 @@ const AddStudent: React.FC<Props> = ({ onClose, onAdd }) => {
   const [registeredOn, setRegisteredOn] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [error, setError] = useState("");
 
   const handleAdd = () => {
+    if (!/^[0-9]{10}$/.test(phoneNumber)) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
+    }
+    setError("");
     const newStudent = {
       name,
       email,
@@ -51,8 +57,9 @@ const AddStudent: React.FC<Props> = ({ onClose, onAdd }) => {
           placeholder="Phone Number"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-2"
         />
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <input
           type="date"
           value={registeredOn}

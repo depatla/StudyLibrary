@@ -102,7 +102,7 @@ const BookSeat: React.FC<Props> = ({ title, student, onClose, onSubmit }) => {
       validTo,
       amount,
       paymentType: paymentType.value,
-      comments: comments.trim() || undefined, // Pass comments only if not empty
+      comments: comments.trim() || "",
     });
   };
 
