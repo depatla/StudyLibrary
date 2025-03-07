@@ -39,6 +39,7 @@ export const useDatabase = (databaseId: string, collectionId: string) => {
               Query.lessThanEqual("$createdAt", endOfMonth),
               Query.limit(limit),
               Query.offset(offset),
+              Query.orderDesc("$createdAt"),
             ]
           );
 

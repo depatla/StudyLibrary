@@ -52,7 +52,7 @@ const Seats: React.FC = () => {
     }
 
     temp.sort((a, b) => {
-      const numA = parseInt(a.seat_no.match(/\d+/)?.[0] || "0", 10); // Extract number from seat_no
+      const numA = parseInt(a.seat_no.match(/\d+/)?.[0] || "0", 10);
       const numB = parseInt(b.seat_no.match(/\d+/)?.[0] || "0", 10);
 
       return numA - numB;

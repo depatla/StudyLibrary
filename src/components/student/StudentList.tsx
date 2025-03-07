@@ -157,7 +157,7 @@ const StudentList: React.FC<Props> = ({
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {getDaysDifference(student.to_date)}
               </td>
-              <td className="border border-gray-200 p-2 flex flex-wrap gap-2 justify-center items-center">
+              <td className="border border-gray-200 p-2 flex flex-wrap gap-2 justify-end items-center mr-4">
                 {isCurrentDateInRange(student.from_date, student.to_date) ? (
                   <button
                     onClick={() =>

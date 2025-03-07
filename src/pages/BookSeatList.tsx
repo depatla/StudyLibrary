@@ -12,6 +12,7 @@ interface BookedSeat {
   amount: string;
   paymentType: string;
   comment?: string;
+  $createdAt: string;
 }
 
 const BookSeatList: React.FC = () => {
@@ -48,6 +49,7 @@ const BookSeatList: React.FC = () => {
         amount: item.amount || "0",
         paymentType: item.payment_type || "Unknown",
         comment: item.comment || "",
+        $createdAt: item.$createdAt || "",
       }));
       setBookings(formattedBookings);
     }
@@ -55,15 +57,6 @@ const BookSeatList: React.FC = () => {
 
   useEffect(() => {
     let filtered = bookings;
-
-    // if (selectedMonth) {
-    //   filtered = filtered.filter(
-    //     (booking) =>
-    //       DateTime.fromISO(booking.fromDate).toFormat("yyyy-MM") ===
-    //       selectedMonth
-    //   );
-    // }
-
     if (selectedReceivedBy) {
       filtered = filtered.filter(
         (booking) => booking.receivedBy === selectedReceivedBy
@@ -196,11 +189,11 @@ const BookSeatList: React.FC = () => {
                       Received By
                     </th>
                     <th className="border border-gray-200 p-2 text-left">
-                      From Date
+                      Created At
                     </th>
-                    <th className="border border-gray-200 p-2 text-left">
+                    {/* <th className="border border-gray-200 p-2 text-left">
                       To Date
-                    </th>
+                    </th> */}
                     <th className="border border-gray-200 p-2 text-left">
                       Amount
                     </th>
@@ -222,10 +215,9 @@ const BookSeatList: React.FC = () => {
                         {booking.receivedBy}
                       </td>
                       <td className="border border-gray-200 p-2">
-                        {DateTime.fromISO(booking.fromDate).toFormat("dd-MMM-yyyy")}
-                      </td>
-                      <td className="border border-gray-200 p-2">
-                         {DateTime.fromISO(booking.toDate).toFormat("dd-MMM-yyyy")}
+                        {DateTime.fromISO(booking.$createdAt).toFormat(
+                          "dd-MMM-yyyy"
+                        )}
                       </td>
                       <td className="border border-gray-200 p-2">
                         ₹{booking.amount}
@@ -233,7 +225,7 @@ const BookSeatList: React.FC = () => {
                       <td className="border border-gray-200 p-2">
                         {booking.paymentType}
                       </td>
-                      <td className="border border-gray-200 p-2">
+                      <td className="border border-gray-200 p-2 max-w-[200px] break-words">
                         {booking.comment}
                       </td>
                     </tr>
