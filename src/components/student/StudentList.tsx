@@ -95,8 +95,8 @@ const StudentList: React.FC<Props> = ({
   };
 
   return (
-    <div className="overflow-y-auto h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-      <table className="w-full border-collapse border border-gray-200 text-sm">
+    <div className="overflow-x-auto overflow-y-auto h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+      <table className="w-full border-collapse border border-gray-200 text-sm min-w-[600px]">
         <thead>
           <tr className="bg-gray-100">
             <th className="border border-gray-200 p-2 text-left">
@@ -122,9 +122,7 @@ const StudentList: React.FC<Props> = ({
             <th className="border border-gray-200 p-2 text-left hidden md:table-cell">
               Due Days
             </th>
-            <th className="border border-gray-200 p-2 justify-center items-center">
-              Actions
-            </th>
+            <th className="border border-gray-200 p-2 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -157,7 +155,7 @@ const StudentList: React.FC<Props> = ({
               <td className="border border-gray-200 p-2 hidden md:table-cell">
                 {getDaysDifference(student.to_date)}
               </td>
-              <td className="border border-gray-200 p-2 flex flex-wrap gap-2 justify-end items-center mr-4">
+              <td className="border border-gray-200 p-2 flex flex-wrap gap-2 justify-end items-center">
                 {isCurrentDateInRange(student.from_date, student.to_date) ? (
                   <button
                     onClick={() =>

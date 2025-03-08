@@ -248,132 +248,92 @@ const Students: React.FC = () => {
   }
   return (
     <div className="p-4">
-      {/* Search Input */}
+      {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <input
           type="text"
           placeholder="Search students"
           value={searchTerm}
           onChange={handleSearch}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none w-full sm:w-auto"
-        />{" "}
-        (Total Students {filteredStudents.length}){/* Dropdowns Row */}
-        <div className="flex gap-4 flex-wrap justify-start sm:justify-end">
-          {/* Filter Dropdown */}
-          <div className="relative inline-block text-left">
-            <button
-              type="button"
-              className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onClick={() => {
-                setIsFilterDropdownOpen(!isFilterDropdownOpen);
-                setIsDropdownOpen(false);
-              }}
-            >
-              Filter
-              <svg
-                className="-mr-1 ml-2 h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none w-full sm:w-auto text-base"
+        />
+        <p className="text-lg font-semibold">
+          (Total Students {filteredStudents.length})
+        </p>
+      </div>
+
+      <div className="flex gap-4 flex-wrap justify-start sm:justify-end">
+        {/* Filter Button */}
+        <div className="relative">
+          <button
+            className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100"
+            onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+          >
+            Filter ▾
+          </button>
+          {isFilterDropdownOpen && (
+            <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
+              <button
+                onClick={() => handleFilter("all")}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm-4 3a1 1 0 100 2h8a1 1 0 100-2H6zm-2 3a1 1 0 100 2h12a1 1 0 100-2H4zm2 3a1 1 0 100 2h8a1 1 0 100-2H6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-
-            {isFilterDropdownOpen && (
-              <div
-                className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto max-h-60 z-50"
-                role="menu"
+                All
+              </button>
+              <button
+                onClick={() => handleFilter("due")}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
               >
-                <div className="py-1" role="none">
-                  <button
-                    onClick={() => handleFilter("all")}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => handleFilter("due")}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    Due Amount
-                  </button>
-                  <button
-                    onClick={() => handleFilter("paid")}
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                  >
-                    Complete
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Actions Dropdown */}
-          <div className="relative inline-block text-left">
-            <button
-              type="button"
-              className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              onClick={() => {
-                setIsDropdownOpen(!isDropdownOpen);
-                setIsFilterDropdownOpen(false);
-              }}
-            >
-              Actions
-              <svg
-                className="-mr-1 ml-2 h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+                Due Amount
+              </button>
+              <button
+                onClick={() => handleFilter("paid")}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm-4 3a1 1 0 100 2h8a1 1 0 100-2H6zm-2 3a1 1 0 100 2h12a1 1 0 100-2H4zm2 3a1 1 0 100 2h8a1 1 0 100-2H6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+                Complete
+              </button>
+            </div>
+          )}
+        </div>
 
-            {isDropdownOpen && (
-              <div
-                className="absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 origin-top-left"
-                role="menu"
+        {/* Actions Dropdown */}
+        <div className="relative">
+          <button
+            className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            Actions ▾
+          </button>
+          {isDropdownOpen && (
+            <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
+              <button
+                onClick={() => {
+                  setIsAddStudentOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
               >
-                <button
-                  onClick={() => {
-                    setIsAddStudentOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Add Student
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsBulkUploadOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Bulk Upload
-                </button>
-
-                <button
-                  onClick={handleSendWhatsApp}
-                  className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Send WhatsApp
-                </button>
-              </div>
-            )}
-          </div>
+                Add Student
+              </button>
+              <button
+                onClick={() => {
+                  setIsBulkUploadOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+              >
+                Bulk Upload
+              </button>
+              <button
+                onClick={() => {
+                  handleSendWhatsApp();
+                  setIsDropdownOpen(false);
+                }}
+                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+              >
+                Send WhatsApp
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -401,7 +361,7 @@ const Students: React.FC = () => {
         onSelectStudents={(selected) => setSelectedStudents(selected)}
       />
 
-      {/* Add Student Modal */}
+      {/* Modals */}
       {isAddStudentOpen && (
         <AddStudent
           onClose={() => setIsAddStudentOpen(false)}
@@ -409,7 +369,6 @@ const Students: React.FC = () => {
         />
       )}
 
-      {/* Bulk Upload Modal */}
       {isBulkUploadOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
           <div className="bg-white p-4 rounded-lg shadow-lg w-full sm:max-w-md">
@@ -432,39 +391,6 @@ const Students: React.FC = () => {
         </div>
       )}
 
-      {/* Bulk WhatsApp Modal */}
-      {isBulkWhatsAppOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-          <div className="bg-white p-4 rounded-lg shadow-lg w-full sm:max-w-md">
-            <h2 className="text-lg font-semibold mb-4">
-              Send WhatsApp Message
-            </h2>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter your message here"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4"
-              rows={5}
-            />
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setIsBulkWhatsAppOpen(false)}
-                className="bg-gray-300 rounded-lg px-4 py-2"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendMessage}
-                className="bg-green-500 text-white rounded-lg px-4 py-2"
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Book Seat Modal */}
       {isBookSeatOpen && selectedStudent && (
         <BookSeat
           title={title}
@@ -473,8 +399,9 @@ const Students: React.FC = () => {
           onSubmit={handleBookSeat}
         />
       )}
+
       {/* Success Dialog */}
-      {dialog.message !== null && (
+      {dialog.message && (
         <DialogBox
           isOpen={true}
           title={dialog?.type || "Success"}

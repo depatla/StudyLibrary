@@ -162,7 +162,7 @@ const BookSeatList: React.FC = () => {
                 >
                   <p className="font-bold">{booking.studentName}</p>
                   <p className="text-sm text-gray-600">
-                    Received By: {booking.receivedBy}
+                    Created By: {booking.receivedBy}
                   </p>
                   <p className="text-sm">From: {booking.fromDate}</p>
                   <p className="text-sm">To: {booking.toDate}</p>
@@ -186,7 +186,7 @@ const BookSeatList: React.FC = () => {
                       Student Name
                     </th>
                     <th className="border border-gray-200 p-2 text-left">
-                      Received By
+                      Created By
                     </th>
                     <th className="border border-gray-200 p-2 text-left">
                       Created At

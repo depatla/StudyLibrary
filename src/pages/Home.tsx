@@ -20,7 +20,7 @@ export const Home = () => {
       <Header onToggleSidebar={toggleSidebar} />
       <div className="flex flex-1">
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main className="flex-1 p-6">
+        <main className="w-full overflow-hidden flex-1">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/Seats" element={<Seats />} />
