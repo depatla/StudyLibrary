@@ -239,7 +239,7 @@ const Seats: React.FC = () => {
             onClick={handleDownload}
             className="bg-yellow-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
           >
-            Download Data
+            Download
           </button>
         </div>
       </div>

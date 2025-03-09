@@ -9,6 +9,9 @@ import { RootState } from "../store/store";
 import { useSelector } from "react-redux";
 import Loader from "../components/common/Loader";
 import DialogBox from "../components/common/DialogBox";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { getDaysDifference } from "./../components/student/StudentList";
 
 type User = {
   name: string;
@@ -62,7 +65,7 @@ const Students: React.FC = () => {
     seat: string;
   }>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [dialog, setDialog] = useState<{
     message: string | null;
     type?: string;
@@ -79,6 +82,22 @@ const Students: React.FC = () => {
   }, [students, seats]);
 
   useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
     const filtered = students.list.filter((student) =>
       Object.values(student)
         .join(" ")
@@ -92,7 +111,7 @@ const Students: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleFilter = (filterType: "due" | "paid" | "all") => {
+  const handleFilter = (filterType: string) => {
     const now = DateTime.now();
 
     if (filterType === "due") {
@@ -111,8 +130,6 @@ const Students: React.FC = () => {
     } else {
       setFilteredStudents(students.list);
     }
-
-    setIsFilterDropdownOpen(false);
     setIsDropdownOpen(false);
   };
 
@@ -238,6 +255,35 @@ const Students: React.FC = () => {
 
     reader.readAsArrayBuffer(file);
   };
+
+  const handleDownload = () => {
+    const dataToExport = filteredStudents.map((student) => [
+      student.name,
+      student.phone,
+      getDaysDifference(student.to_date),
+    ]);
+
+    // Initialize jsPDF
+    const doc = new jsPDF();
+
+    // Add a title
+    doc.setFontSize(18);
+    doc.text("Seats Data", 14, 22);
+
+    // Define table columns
+    const tableColumnHeaders = ["Student Name", "Phone", "Due Days"];
+
+    // Add the table to the PDF
+    autoTable(doc, {
+      head: [tableColumnHeaders], // Table headers
+      body: dataToExport, // Table rows
+      startY: 30, // Start after the title
+      theme: "grid", // Table style
+    });
+
+    // Save the PDF
+    doc.save("Students.pdf");
+  };
   // Conditional rendering based on loading states
   if (students.loading || seats.loading || bookings.loading) {
     return (
@@ -249,7 +295,8 @@ const Students: React.FC = () => {
   return (
     <div className="p-4">
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        {/* Search Input */}
         <input
           type="text"
           placeholder="Search students"
@@ -257,83 +304,72 @@ const Students: React.FC = () => {
           onChange={handleSearch}
           className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none w-full sm:w-auto text-base"
         />
-        <p className="text-lg font-semibold">
+
+        {/* Total Students */}
+        <p className="text-lg font-semibold whitespace-nowrap">
           (Total Students {filteredStudents.length})
         </p>
-      </div>
 
-      <div className="flex gap-4 flex-wrap justify-start sm:justify-end">
-        {/* Filter Button */}
-        <div className="relative">
-          <button
-            className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100"
-            onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+        {/* Filter, Actions, and Download */}
+        <div className="flex flex-wrap gap-4 justify-start sm:justify-end items-center">
+          {/* Filter Dropdown */}
+          <select
+            onChange={(e) => handleFilter(e.target.value)}
+            className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100 focus:outline-none"
           >
-            Filter ▾
-          </button>
-          {isFilterDropdownOpen && (
-            <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
-              <button
-                onClick={() => handleFilter("all")}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                All
-              </button>
-              <button
-                onClick={() => handleFilter("due")}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                Due Amount
-              </button>
-              <button
-                onClick={() => handleFilter("paid")}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                Complete
-              </button>
-            </div>
-          )}
-        </div>
+            <option value="all">All</option>
+            <option value="due">Payment Pending</option>
+            <option value="paid">Payment Completed</option>
+          </select>
 
-        {/* Actions Dropdown */}
-        <div className="relative">
+          {/* Actions Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100"
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+            >
+              Actions ▾
+            </button>
+            {isDropdownOpen && (
+              <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
+                <button
+                  onClick={() => {
+                    setIsAddStudentOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                >
+                  Add Student
+                </button>
+                <button
+                  onClick={() => {
+                    setIsBulkUploadOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                >
+                  Bulk Upload
+                </button>
+                <button
+                  onClick={() => {
+                    handleSendWhatsApp();
+                    setIsDropdownOpen(false);
+                  }}
+                  className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
+                >
+                  Send WhatsApp
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Download Button */}
           <button
-            className="px-4 py-2 bg-white border rounded-md text-sm sm:text-base font-medium shadow-sm hover:bg-gray-100"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={handleDownload}
+            className="bg-yellow-500 text-white rounded-lg px-4 py-2 w-full sm:w-auto"
           >
-            Actions ▾
+            Download
           </button>
-          {isDropdownOpen && (
-            <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
-              <button
-                onClick={() => {
-                  setIsAddStudentOpen(true);
-                  setIsDropdownOpen(false);
-                }}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                Add Student
-              </button>
-              <button
-                onClick={() => {
-                  setIsBulkUploadOpen(true);
-                  setIsDropdownOpen(false);
-                }}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                Bulk Upload
-              </button>
-              <button
-                onClick={() => {
-                  handleSendWhatsApp();
-                  setIsDropdownOpen(false);
-                }}
-                className="block px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                Send WhatsApp
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
