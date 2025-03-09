@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { UpdateUser } from "../../pages/Students";
 
 interface Props {
   onClose: () => void;
@@ -8,12 +9,24 @@ interface Props {
     phone: string;
     join_date: string;
   }) => void;
+  onUpdate: (student: {
+    $id: string;
+    name: string;
+    email: string;
+    phone: string;
+  }) => void;
+  studentData: UpdateUser | null;
 }
 
-const AddStudent: React.FC<Props> = ({ onClose, onAdd }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+const AddStudent: React.FC<Props> = ({
+  onClose,
+  onAdd,
+  studentData,
+  onUpdate,
+}) => {
+  const [name, setName] = useState(studentData?.name || "");
+  const [email, setEmail] = useState(studentData?.email || "");
+  const [phoneNumber, setPhoneNumber] = useState(studentData?.phone || "");
   const [registeredOn, setRegisteredOn] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -31,13 +44,21 @@ const AddStudent: React.FC<Props> = ({ onClose, onAdd }) => {
       phone: phoneNumber,
       join_date: registeredOn,
     };
+    if (studentData && studentData?.$id) {
+      const updateStudent = { $id: studentData.$id, ...newStudent };
+      onUpdate(updateStudent);
+      return;
+    }
     onAdd(newStudent);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white rounded-lg p-4 sm:p-6 w-11/12 sm:w-full max-w-lg">
-        <h2 className="text-lg font-bold mb-4">Add Student</h2>
+        <h2 className="text-lg font-bold mb-4">
+          {" "}
+          {studentData && studentData.$id ? "Update" : "Add"} Student
+        </h2>
         <input
           type="text"
           placeholder="Name"
@@ -77,7 +98,7 @@ const AddStudent: React.FC<Props> = ({ onClose, onAdd }) => {
             onClick={handleAdd}
             className="bg-blue-500 text-white rounded-lg px-4 py-2"
           >
-            Add
+            {studentData && studentData.$id ? "Update" : "Add"}
           </button>
         </div>
       </div>

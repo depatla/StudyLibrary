@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import DialogBox from "../common/DialogBox";
 import { DateTime } from "luxon";
+import { UpdateUser } from "../../pages/Students";
 
 interface Student {
   $id: string;
@@ -34,6 +35,7 @@ interface Props {
   onBook: (id: string, name: string, seat: string) => void;
   onchangeSeat: (id: string, name: string, seat: string) => void;
   onSelectStudents: (selected: string[]) => void;
+  onEditStudent: (student: UpdateUser) => void;
 }
 
 const StudentList: React.FC<Props> = ({
@@ -42,6 +44,7 @@ const StudentList: React.FC<Props> = ({
   onBook,
   onchangeSeat,
   onSelectStudents,
+  onEditStudent,
 }) => {
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
   const [dialog, setDialog] = useState<{
@@ -178,6 +181,18 @@ const StudentList: React.FC<Props> = ({
                     Book Seat
                   </button>
                 )}
+                <FaEdit
+                  onClick={() =>
+                    onEditStudent({
+                      $id: student.$id,
+                      name: student.name,
+                      email: student.email,
+                      phone: student.phone,
+                    })
+                  }
+                  className="m-2 text-yellow-500 hover:text-yellow-600 "
+                  title="Edit"
+                />
                 <FaTrash
                   onClick={() =>
                     handleDeleteClick(
@@ -186,7 +201,7 @@ const StudentList: React.FC<Props> = ({
                       student.seat_id || ""
                     )
                   }
-                  className="text-red-500 cursor-pointer text-lg"
+                  className="mr-4 text-red-500 cursor-pointer text-lg"
                   title="Delete"
                 />
               </td>

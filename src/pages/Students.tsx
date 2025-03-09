@@ -19,6 +19,12 @@ type User = {
   [key: string]: any;
 };
 
+export type UpdateUser = {
+  $id: string;
+  name: string;
+  phone: string;
+  email: string;
+};
 const isUserFound = (users: User[], name: string, phone: string): boolean => {
   return users.some((user) => user.name === name && user.phone === phone);
 };
@@ -70,6 +76,8 @@ const Students: React.FC = () => {
     message: string | null;
     type?: string;
   }>({ message: null, type: "Success" });
+
+  const [updateStudent, setUpdateStudent] = useState<null | UpdateUser>(null);
 
   const isFetched = useRef(false);
 
@@ -151,6 +159,20 @@ const Students: React.FC = () => {
     setIsBulkWhatsAppOpen(false);
   };
 
+  const handleUpdateStudent = async (student: UpdateUser) => {
+    try {
+      await students.update(student.$id, {
+        name: student.name,
+        phone: student.phone,
+        email: student.email,
+      });
+      setUpdateStudent(null);
+      setIsAddStudentOpen(false);
+      setDialog({ message: "Student updated sucessfully" });
+    } catch (e) {
+      setDialog({ message: "Error..." });
+    }
+  };
   const handleAddStudent = async (newStudent: {
     name: string;
     email: string;
@@ -334,6 +356,7 @@ const Students: React.FC = () => {
               <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 text-sm z-50">
                 <button
                   onClick={() => {
+                    setUpdateStudent(null);
                     setIsAddStudentOpen(true);
                     setIsDropdownOpen(false);
                   }}
@@ -395,13 +418,18 @@ const Students: React.FC = () => {
           setIsBookSeatOpen(true);
         }}
         onSelectStudents={(selected) => setSelectedStudents(selected)}
+        onEditStudent={(student: UpdateUser) => setUpdateStudent(student)}
       />
 
-      {/* Modals */}
-      {isAddStudentOpen && (
+      {(isAddStudentOpen || updateStudent !== null) && (
         <AddStudent
-          onClose={() => setIsAddStudentOpen(false)}
+          onClose={() => {
+            setIsAddStudentOpen(false);
+            setUpdateStudent(null);
+          }}
           onAdd={handleAddStudent}
+          studentData={updateStudent}
+          onUpdate={handleUpdateStudent}
         />
       )}
 
