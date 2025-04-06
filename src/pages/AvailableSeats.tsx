@@ -27,7 +27,7 @@ const SeatTable: React.FC = () => {
   const groupedSeats: Record<string, number[]> = list.reduce(
     (acc, seat: Seat) => {
       const [room, number] = seat.seat_no.split(" ");
-      if (room.toUpperCase().startsWith("OPEN")) return acc; // Skip "OPEN" rooms
+      if (room.toUpperCase().startsWith("OPEN")) return acc;
       if (!acc[room]) acc[room] = [];
       acc[room].push(parseInt(number, 10));
       return acc;

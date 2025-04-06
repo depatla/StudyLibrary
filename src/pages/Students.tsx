@@ -11,7 +11,7 @@ import Loader from "../components/common/Loader";
 import DialogBox from "../components/common/DialogBox";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getDaysDifference } from "./../components/student/StudentList";
+import { getDaysDifference } from "../helper/helper";
 
 type User = {
   name: string;
@@ -22,8 +22,7 @@ type User = {
 export type UpdateUser = {
   $id: string;
   name: string;
-  phone: string;
-  email: string;
+  mobile: string;
 };
 const isUserFound = (users: User[], name: string, phone: string): boolean => {
   return users.some((user) => user.name === name && user.phone === phone);
@@ -31,7 +30,7 @@ const isUserFound = (users: User[], name: string, phone: string): boolean => {
 
 const databaseId = process.env.REACT_APP_DATABASE_ID
   ? process.env.REACT_APP_DATABASE_ID
-  : "676f62930015946e6bb5"; // Replace with your Appwrite database ID
+  : "676f62930015946e6bb5";
 
 const Students: React.FC = () => {
   const students = useDatabase(
@@ -53,7 +52,9 @@ const Students: React.FC = () => {
       : "6775433b0022fae7ea28"
   );
 
-  const username = useSelector((state: RootState) => state.user.username);
+  const { username, studyhallId } = useSelector(
+    (state: RootState) => state.user
+  );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [title, setTitle] = useState<string>("Book");
@@ -163,8 +164,7 @@ const Students: React.FC = () => {
     try {
       await students.update(student.$id, {
         name: student.name,
-        phone: student.phone,
-        email: student.email,
+        mobile: student.mobile,
       });
       setUpdateStudent(null);
       setIsAddStudentOpen(false);
@@ -175,16 +175,18 @@ const Students: React.FC = () => {
   };
   const handleAddStudent = async (newStudent: {
     name: string;
-    email: string;
-    phone: string;
-    join_date: string;
+    mobile: string;
   }) => {
     try {
-      if (isUserFound(students.list, newStudent.name, newStudent.phone)) {
+      if (isUserFound(students.list, newStudent.name, newStudent.mobile)) {
         setDialog({ type: "Warning", message: "Student already exists" });
         return false;
       }
-      await students.create({ ...newStudent, hall_code: "PRAJNA" });
+      await students.create({
+        ...newStudent,
+        studyhallId,
+        createdBy: username,
+      });
       setIsAddStudentOpen(false);
       setDialog({ message: "Student created sucessfully" });
     } catch (error) {
@@ -215,7 +217,7 @@ const Students: React.FC = () => {
     comments?: string;
   }) => {
     try {
-      await bookings.create({
+      const bookingdata = await bookings.create({
         seat_id: bookingDetails.seatNo,
         from_date: bookingDetails.validFrom,
         to_date: bookingDetails.validTo,
@@ -460,7 +462,6 @@ const Students: React.FC = () => {
           title={title}
           student={selectedStudent}
           onClose={() => setIsBookSeatOpen(false)}
-          onSubmit={handleBookSeat}
         />
       )}
 
