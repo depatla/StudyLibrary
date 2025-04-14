@@ -9,53 +9,64 @@ export const useDatabase = (databaseId: string, collectionId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState<number>(0);
   const fetchAllRecordsByMonth = useCallback(
-    async ({ yearMonth }: { yearMonth: string }) => {
+    async ({
+      yearMonth,
+      fieldName = "$createdAt",
+    }: {
+      yearMonth: string;
+      fieldName?: string;
+    }) => {
       setLoading(true);
       setError(null);
 
       try {
-        // Parse the yearMonth string and calculate the start and end of the month
-        const startOfMonth = DateTime.fromFormat(yearMonth, "yyyy-MM")
-          .startOf("month")
-          .toISO();
-        const endOfMonth = DateTime.fromFormat(yearMonth, "yyyy-MM")
-          .endOf("month")
-          .toISO();
-        // Ensure that startOfMonth and endOfMonth are valid
-        if (!startOfMonth || !endOfMonth) {
-          throw new Error("Invalid date range generated from yearMonth input.");
-        }
-        let allDocuments: any[] = [];
+        let filters = [];
+        const limit = 100;
         let offset = 0;
-        const limit = 100; // Appwrite's max limit per request
+        let allDocuments: any[] = [];
+
+        if (fieldName === "$createdAt") {
+          const startOfMonth = DateTime.fromFormat(yearMonth, "yyyy-MM")
+            .startOf("month")
+            .toISO();
+          const endOfMonth = DateTime.fromFormat(yearMonth, "yyyy-MM")
+            .endOf("month")
+            .toISO();
+
+          if (!startOfMonth || !endOfMonth) {
+            throw new Error(
+              "Invalid date range generated from yearMonth input."
+            );
+          }
+
+          filters.push(
+            Query.greaterThanEqual(fieldName, startOfMonth),
+            Query.lessThanEqual(fieldName, endOfMonth),
+            Query.orderDesc(fieldName)
+          );
+        } else {
+          filters.push(
+            Query.startsWith(fieldName, yearMonth),
+            Query.orderAsc(fieldName)
+          );
+        }
 
         while (true) {
-          // Fetch a batch of documents within the date range
           const response = await databases.listDocuments(
             databaseId,
             collectionId,
-            [
-              Query.greaterThanEqual("$createdAt", startOfMonth),
-              Query.lessThanEqual("$createdAt", endOfMonth),
-              Query.limit(limit),
-              Query.offset(offset),
-              Query.orderDesc("$createdAt"),
-            ]
+            [...filters, Query.limit(limit), Query.offset(offset)]
           );
 
-          // Append the documents to the result array
           allDocuments = [...allDocuments, ...response.documents];
 
-          // Break the loop when all documents have been fetched
           if (allDocuments.length >= response.total) {
             break;
           }
 
-          // Increment the offset for the next batch
           offset += limit;
         }
 
-        // Save the fetched documents and total count
         setList(allDocuments);
         setTotal(allDocuments.length);
       } catch (err) {

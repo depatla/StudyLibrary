@@ -35,19 +35,19 @@ const BookSeatList: React.FC = () => {
   useEffect(() => {
     const currentMonth = DateTime.now().toFormat("yyyy-MM");
     setSelectedMonth(currentMonth);
-    fetchAllRecordsByMonth({ yearMonth: currentMonth });
+    fetchAllRecordsByMonth({ fieldName: "from", yearMonth: currentMonth });
   }, [fetchAllRecordsByMonth]);
 
   useEffect(() => {
     if (list.length > 0) {
       const formattedBookings = list.map((item) => ({
         id: item.$id,
-        studentName: item.student_name || "Unknown",
-        receivedBy: item.received_by || "Admin",
-        fromDate: item.from_date || "",
-        toDate: item.to_date || "",
+        studentName: item.studentName || "Unknown",
+        receivedBy: item.receivedBy || "Admin",
+        fromDate: item.from || "",
+        toDate: item.to || "",
         amount: item.amount || "0",
-        paymentType: item.payment_type || "Unknown",
+        paymentType: item.paymentType || "Unknown",
         comment: item.comment || "",
         $createdAt: item.$createdAt || "",
       }));
