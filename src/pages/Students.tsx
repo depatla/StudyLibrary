@@ -84,11 +84,15 @@ const Students: React.FC = () => {
 
   useEffect(() => {
     if (!isFetched.current) {
-      isFetched.current = true; // Prevent further calls
-      students.fetchAll();
+      isFetched.current = true;
+      fetchStudentsList();
       seats.fetchAll();
     }
   }, [students, seats]);
+
+  const fetchStudentsList = () => {
+    students.fetchAll();
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -203,50 +207,6 @@ const Students: React.FC = () => {
       await seats.update(seatToUpdate.$id, { status });
     } else {
       console.error("Seat not found.");
-    }
-  };
-
-  const handleBookSeat = async (bookingDetails: {
-    studentId: string;
-    studentName: string;
-    seatNo: string;
-    validFrom: string;
-    validTo: string;
-    amount: string;
-    paymentType: string;
-    comments?: string;
-  }) => {
-    try {
-      const bookingdata = await bookings.create({
-        seat_id: bookingDetails.seatNo,
-        from_date: bookingDetails.validFrom,
-        to_date: bookingDetails.validTo,
-        payment_type: bookingDetails.paymentType,
-        amount: bookingDetails.amount,
-        comment: bookingDetails.comments || "",
-        student_name: bookingDetails.studentName,
-        received_by: username,
-        hall_code: "PRAJNA",
-      });
-
-      // Update student with seat ID
-      await students.update(bookingDetails.studentId, {
-        seat_id: bookingDetails.seatNo,
-        from_date: bookingDetails.validFrom,
-        to_date: bookingDetails.validTo,
-      });
-
-      if (changeSeat !== "") {
-        await updateSeat("Available", changeSeat);
-      }
-
-      await updateSeat("Occupied", bookingDetails.seatNo);
-
-      setIsBookSeatOpen(false);
-      setDialog({ message: "Booking successfully created!" });
-    } catch (error) {
-      console.error("Error during booking:", error);
-      alert("An error occurred while creating the booking. Please try again.");
     }
   };
 
@@ -462,6 +422,7 @@ const Students: React.FC = () => {
           title={title}
           student={selectedStudent}
           onClose={() => setIsBookSeatOpen(false)}
+          refresh={fetchStudentsList}
         />
       )}
 

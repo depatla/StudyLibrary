@@ -7,7 +7,7 @@ interface UserState {
 
 // Initial state for the user slice
 const initialState: UserState = {
-  username: "",
+  username: "Venkatesh",
   studyhallId: "",
 };
 

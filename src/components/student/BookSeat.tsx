@@ -3,17 +3,19 @@ import Select from "react-select";
 import { useDatabase } from "./../../config/useDatabase";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import Loader from "../common/Loader";
 
 interface Props {
   title: string;
   student: { id: string; name: string; seat: string };
   onClose: () => void;
+  refresh: () => void;
 }
 
 const databaseId = process.env.REACT_APP_DATABASE_ID || "676f62930015946e6bb5";
 const collectionId = process.env.REACT_APP_SEATS_ID || "6771ff5e001204850a2f";
 
-const BookSeat: React.FC<Props> = ({ title, student, onClose }) => {
+const BookSeat: React.FC<Props> = ({ title, student, onClose, refresh }) => {
   const { username, studyhallId } = useSelector(
     (state: RootState) => state.user
   );
@@ -191,12 +193,34 @@ const BookSeat: React.FC<Props> = ({ title, student, onClose }) => {
       // 4. Success
       setShowPreview(false);
       onClose();
+      refresh();
       alert("Booking successfully created!");
     } catch (err) {
       console.error("Booking error:", err);
       alert("Failed to create booking. Please try again.");
     }
   };
+
+  const handleChangeSeat = async () => {
+    // Update student with seat ID
+    await students.update(student.id, {
+      seat: seatNo?.value,
+    });
+    await updateSeat("Available", student.seat);
+
+    seatNo && (await updateSeat("Occupied", seatNo?.value));
+    onClose();
+    refresh();
+  };
+
+  // Conditional rendering based on loading states
+  if (students.loading || seats.loading || bookings.loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-40">
@@ -219,70 +243,76 @@ const BookSeat: React.FC<Props> = ({ title, student, onClose }) => {
             className="mb-4"
           />
         )}
+        {title !== "Change" ? (
+          <>
+            {/* Months Dropdown */}
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Months</label>
+              <select
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full"
+                value={months}
+                onChange={(e) => setMonths(parseInt(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <option key={num} value={num}>
+                    {num} Month{num > 1 ? "s" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* Months Dropdown */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Months</label>
-          <select
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full"
-            value={months}
-            onChange={(e) => setMonths(parseInt(e.target.value))}
-          >
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <option key={num} value={num}>
-                {num} Month{num > 1 ? "s" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+            {/* Valid From */}
+            <input
+              type="date"
+              placeholder="Valid From"
+              value={validFrom}
+              onChange={(e) => setValidFrom(e.target.value)}
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+            />
 
-        {/* Valid From */}
-        <input
-          type="date"
-          placeholder="Valid From"
-          value={validFrom}
-          onChange={(e) => setValidFrom(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-        />
+            {/* Valid To */}
+            <input
+              type="date"
+              placeholder="Valid To"
+              value={validTo}
+              disabled
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4 bg-gray-100 cursor-not-allowed"
+            />
 
-        {/* Valid To */}
-        <input
-          type="date"
-          placeholder="Valid To"
-          value={validTo}
-          disabled
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4 bg-gray-100 cursor-not-allowed"
-        />
+            {/* Amount */}
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+            />
 
-        {/* Amount */}
-        <input
-          type="number"
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-        />
+            {/* Payment Type */}
+            <Select
+              options={paymentOptions}
+              value={paymentType}
+              onChange={(selectedOption) => setPaymentType(selectedOption)}
+              placeholder="Select Payment Type"
+              className="mb-4"
+            />
 
-        {/* Payment Type */}
-        <Select
-          options={paymentOptions}
-          value={paymentType}
-          onChange={(selectedOption) => setPaymentType(selectedOption)}
-          placeholder="Select Payment Type"
-          className="mb-4"
-        />
+            {/* Comments */}
+            <textarea
+              placeholder="Add a comment (optional)"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
+            />
 
-        {/* Comments */}
-        <textarea
-          placeholder="Add a comment (optional)"
-          value={comments}
-          onChange={(e) => setComments(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-        />
-
-        {/* Error Message */}
-        {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
-
+            {/* Error Message */}
+            {errorMessage && (
+              <p className="text-red-500 mb-4">{errorMessage}</p>
+            )}
+          </>
+        ) : (
+          ""
+        )}
         {/* Action Buttons */}
         <div className="flex justify-end gap-4">
           <button
@@ -291,12 +321,21 @@ const BookSeat: React.FC<Props> = ({ title, student, onClose }) => {
           >
             Cancel
           </button>
-          <button
-            onClick={handleVerify}
-            className="bg-blue-500 text-white rounded-lg px-4 py-2"
-          >
-            Verify
-          </button>
+          {title !== "Change" ? (
+            <button
+              onClick={handleVerify}
+              className="bg-blue-500 text-white rounded-lg px-4 py-2"
+            >
+              Verify
+            </button>
+          ) : (
+            <button
+              onClick={handleChangeSeat}
+              className="bg-black text-white rounded-lg px-4 py-2"
+            >
+              Change Seat
+            </button>
+          )}
         </div>
       </div>
 
